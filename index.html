@@ -66,6 +66,250 @@
             { id: 'git', name: 'Git', icon: '🐙', category: 'Engineering', color: 'bg-red-500/20 text-red-400 border-red-500/30', desc: '版本控制体系。管理数据分析脚本与大型工程代码，保持敏捷迭代与可追溯性。' },
         ];
 
+
+
+        const ParticleCanvas = () => {
+            const canvasRef = React.useRef(null);
+            useEffect(() => {
+                const canvas = canvasRef.current;
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                let animId;
+                let mouse = {x: -999, y: -999};
+                const resize = () => { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; };
+                resize();
+                window.addEventListener('resize', resize);
+                canvas.addEventListener('mousemove', e => {
+                    const r = canvas.getBoundingClientRect();
+                    mouse.x = e.clientX - r.left;
+                    mouse.y = e.clientY - r.top;
+                });
+                canvas.addEventListener('mouseleave', () => { mouse.x = -999; mouse.y = -999; });
+                const N = 120;
+                const pts = Array.from({length: N}, () => ({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    vx: (Math.random() - 0.5) * 0.4,
+                    vy: (Math.random() - 0.5) * 0.4,
+                    r: Math.random() * 1.5 + 0.5,
+                }));
+                const draw = () => {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    pts.forEach(p => {
+                        p.x += p.vx; p.y += p.vy;
+                        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+                        const dx = mouse.x - p.x, dy = mouse.y - p.y;
+                        const dist = Math.sqrt(dx*dx + dy*dy);
+                        if (dist < 100) { p.x -= dx * 0.02; p.y -= dy * 0.02; }
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+                        ctx.fillStyle = 'rgba(96,165,250,0.6)';
+                        ctx.fill();
+                    });
+                    for (let i = 0; i < N; i++) for (let j = i+1; j < N; j++) {
+                        const dx = pts[i].x - pts[j].x, dy = pts[i].y - pts[j].y;
+                        const d = Math.sqrt(dx*dx + dy*dy);
+                        if (d < 120) {
+                            ctx.beginPath();
+                            ctx.moveTo(pts[i].x, pts[i].y);
+                            ctx.lineTo(pts[j].x, pts[j].y);
+                            ctx.strokeStyle = `rgba(96,165,250,${0.15 * (1 - d/120)})`;
+                            ctx.lineWidth = 0.5;
+                            ctx.stroke();
+                        }
+                    }
+                    animId = requestAnimationFrame(draw);
+                };
+                draw();
+                return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize); };
+            }, []);
+            return <canvas ref={canvasRef} style={{position:'absolute',inset:0,width:'100%',height:'100%',pointerEvents:'auto'}} />;
+        };
+
+        const TransformerPanel = () => {
+            const [inputText, setInputText] = React.useState('The model captures complex nominal structures in academic texts.');
+            const [tokens, setTokens] = React.useState([]);
+            const [attentionWeights, setAttentionWeights] = React.useState([]);
+            const [selectedToken, setSelectedToken] = React.useState(null);
+            const [analyzed, setAnalyzed] = React.useState(false);
+            const [analyzing, setAnalyzing] = React.useState(false);
+
+            const runAttention = () => {
+                setAnalyzing(true);
+                setTimeout(() => {
+                    const words = inputText.trim().split(/\s+/).slice(0, 12);
+                    const n = words.length;
+                    const weights = Array.from({length: n}, (_, i) =>
+                        Array.from({length: n}, (_, j) => {
+                            const dist = Math.abs(i - j);
+                            const base = Math.random() * 0.3 + (dist === 0 ? 0.6 : dist === 1 ? 0.3 : 0.05);
+                            const linguistic = (words[i] && words[j] && 
+                                (words[i].match(/the|a|an/i) && words[j].match(/\w{4,}/)) ? 0.3 : 0);
+                            return Math.min(1, base + linguistic + Math.random() * 0.15);
+                        })
+                    );
+                    // normalize each row
+                    const normalized = weights.map(row => {
+                        const sum = row.reduce((a,b) => a+b, 0);
+                        return row.map(v => v/sum);
+                    });
+                    setTokens(words);
+                    setAttentionWeights(normalized);
+                    setSelectedToken(0);
+                    setAnalyzed(true);
+                    setAnalyzing(false);
+                }, 800);
+            };
+
+            const getColor = (weight) => {
+                const r = Math.round(6 + weight * 249);
+                const g = Math.round(182 - weight * 100);
+                const b = Math.round(212 - weight * 160);
+                return `rgb(${r},${g},${b})`;
+            };
+
+            return (
+                <div className="bg-[#0a0a0a] rounded-[2rem] p-6 border border-white/10 shadow-2xl">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></div>
+                        <span className="text-xs text-gray-500 font-mono uppercase tracking-widest">Transformer Self-Attention Visualizer · Multi-Head Simulation</span>
+                    </div>
+                    <div className="flex gap-3 mb-4">
+                        <input
+                            value={inputText}
+                            onChange={e => setInputText(e.target.value)}
+                            className="flex-1 bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-gray-300 text-sm font-light focus:outline-none focus:border-purple-500/50 transition-colors"
+                            placeholder="输入英文句子..."
+                        />
+                        <button onClick={runAttention} disabled={analyzing}
+                            className="px-6 py-3 rounded-xl bg-purple-500/20 border border-purple-500/30 text-purple-400 text-sm font-medium hover:bg-purple-500/30 transition-all disabled:opacity-40 whitespace-nowrap">
+                            {analyzing ? 'Computing...' : 'Run →'}
+                        </button>
+                    </div>
+
+                    {analyzed && tokens.length > 0 && (
+                        <div className="mt-4">
+                            <div className="flex gap-2 mb-4 flex-wrap">
+                                {tokens.map((token, i) => (
+                                    <button key={i} onClick={() => setSelectedToken(i)}
+                                        className="px-3 py-1.5 rounded-lg text-xs font-mono transition-all"
+                                        style={{
+                                            background: selectedToken === i ? 'rgba(168,85,247,0.3)' : 'rgba(255,255,255,0.05)',
+                                            border: `1px solid ${selectedToken === i ? 'rgba(168,85,247,0.6)' : 'rgba(255,255,255,0.1)'}`,
+                                            color: selectedToken === i ? '#c084fc' : '#9ca3af'
+                                        }}>
+                                        {token}
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="text-xs text-gray-600 mb-3 font-mono">
+                                Attention from <span className="text-purple-400">"{tokens[selectedToken]}"</span> → all tokens
+                            </div>
+                            <div className="flex gap-2 flex-wrap">
+                                {tokens.map((token, j) => (
+                                    <div key={j} className="flex flex-col items-center gap-1">
+                                        <div className="text-xs font-mono text-gray-400 text-center max-w-[60px] truncate">{token}</div>
+                                        <div className="w-12 h-12 rounded-lg flex items-center justify-center text-[10px] font-bold transition-all"
+                                            style={{
+                                                background: getColor(attentionWeights[selectedToken]?.[j] || 0),
+                                                color: (attentionWeights[selectedToken]?.[j] || 0) > 0.3 ? '#000' : '#fff'
+                                            }}>
+                                            {((attentionWeights[selectedToken]?.[j] || 0) * 100).toFixed(0)}%
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="mt-4 pt-4 border-t border-white/5 grid grid-cols-3 gap-3">
+                                {[
+                                    {label:'Max Attention', value: selectedToken !== null ? Math.max(...(attentionWeights[selectedToken]||[])).toFixed(3) : '-', color:'text-purple-400'},
+                                    {label:'Entropy', value: selectedToken !== null ? (-(attentionWeights[selectedToken]||[]).reduce((s,p) => s + (p>0?p*Math.log(p):0), 0)).toFixed(3) : '-', color:'text-cyan-400'},
+                                    {label:'Focus Token', value: selectedToken !== null ? tokens[(attentionWeights[selectedToken]||[]).indexOf(Math.max(...(attentionWeights[selectedToken]||[])))] : '-', color:'text-emerald-400'},
+                                ].map((m,i) => (
+                                    <div key={i} className="bg-white/5 rounded-xl p-3 border border-white/5 text-center">
+                                        <div className={`text-lg font-bold font-mono ${m.color}`}>{m.value}</div>
+                                        <div className="text-[10px] text-gray-500 mt-1 uppercase tracking-widest">{m.label}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const NLPAnalyzerPanel = () => {
+            const [inputText, setInputText] = React.useState('The acquisition of complex nominal structures represents a key developmental milestone in academic writing proficiency.');
+            const [result, setResult] = React.useState(null);
+            const [analyzing, setAnalyzing] = React.useState(false);
+
+            const analyze = () => {
+                setAnalyzing(true);
+                setTimeout(() => {
+                    const words = inputText.trim().split(/\s+/).length;
+                    const sentences = inputText.split(/[.!?]+/).filter(s => s.trim()).length || 1;
+                    const clauses = (inputText.match(/,|;|which|that|when|because|although/gi) || []).length + sentences;
+                    const nominals = (inputText.match(/\b(the|a|an)\s+\w+\s+(of|in|for|with|on)\b/gi) || []).length + 
+                                     (inputText.match(/\w+tion\b|\w+ment\b|\w+ity\b/gi) || []).length;
+                    const mls = (words / sentences).toFixed(2);
+                    const cnt = (nominals / (sentences * 0.8)).toFixed(3);
+                    const score = cnt > 2.0 ? 'AI-Generated' : 'Human-Authored';
+                    const confidence = cnt > 2.5 ? 94 : cnt > 1.8 ? 72 : 61;
+                    setResult({ words, sentences, clauses, nominals, mls, cnt, score, confidence });
+                    setAnalyzing(false);
+                }, 900);
+            };
+
+            return (
+                <div className="bg-[#0a0a0a] rounded-[2rem] p-6 border border-white/10 shadow-2xl">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                        <span className="text-xs text-gray-500 font-mono uppercase tracking-widest">Syntactic Complexity Analyzer · L2SCA Demo</span>
+                    </div>
+                    <textarea
+                        value={inputText}
+                        onChange={e => setInputText(e.target.value)}
+                        className="w-full bg-black/60 border border-white/10 rounded-xl p-4 text-gray-300 text-sm font-light resize-none focus:outline-none focus:border-blue-500/50 transition-colors"
+                        rows={3}
+                        placeholder="输入任意英文文本进行句法分析..."
+                    />
+                    <button onClick={analyze} disabled={analyzing}
+                        className="mt-3 px-6 py-2 rounded-full bg-blue-500/20 border border-blue-500/30 text-blue-400 text-sm font-medium hover:bg-blue-500/30 transition-all disabled:opacity-40">
+                        {analyzing ? 'Analyzing...' : 'Run Analysis →'}
+                    </button>
+                    {result && (
+                        <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {[
+                                { label: 'MLS', value: result.mls, desc: 'Mean Length / Sentence', color: 'text-cyan-400' },
+                                { label: 'CN/T', value: result.cnt, desc: 'Complex Nominals / T-unit', color: result.cnt > 2.0 ? 'text-red-400' : 'text-green-400' },
+                                { label: 'Clauses', value: result.clauses, desc: 'Total Clause Count', color: 'text-purple-400' },
+                                { label: 'Nominals', value: result.nominals, desc: 'Complex Nominal Count', color: 'text-amber-400' },
+                            ].map((m, i) => (
+                                <div key={i} className="bg-white/5 rounded-xl p-3 border border-white/5">
+                                    <div className={`text-2xl font-bold font-mono ${m.color}`}>{m.value}</div>
+                                    <div className="text-[10px] text-gray-500 mt-1 uppercase tracking-widest">{m.label}</div>
+                                    <div className="text-[10px] text-gray-600 mt-0.5">{m.desc}</div>
+                                </div>
+                            ))}
+                            <div className="col-span-2 md:col-span-4 bg-white/5 rounded-xl p-4 border border-white/5 flex items-center justify-between">
+                                <div>
+                                    <div className="text-xs text-gray-500 uppercase tracking-widest mb-1">Model Prediction</div>
+                                    <div className={`text-xl font-bold ${result.score === 'AI-Generated' ? 'text-red-400' : 'text-green-400'}`}>{result.score}</div>
+                                </div>
+                                <div className="text-right">
+                                    <div className="text-xs text-gray-500 uppercase tracking-widest mb-1">Confidence</div>
+                                    <div className="text-xl font-bold text-white">{result.confidence}%</div>
+                                </div>
+                                <div className="w-32 h-2 bg-white/10 rounded-full overflow-hidden">
+                                    <div className={`h-full rounded-full transition-all duration-700 ${result.score === 'AI-Generated' ? 'bg-red-400' : 'bg-green-400'}`} style={{width: result.confidence + '%'}}></div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
         const LiveCrawlerPanel = () => {
             const [logs, setLogs] = useState(["[SYS] Initializing Quant Pipeline...", "[SYS] Connecting to Financial Data APIs..."]);
             const [sentimentScore, setSentimentScore] = useState(58.4);
@@ -175,9 +419,9 @@
             }, [presenterIndex, presenterMode]);
 
             const planData = [
-                { phase: 'Year 1', color: 'border-blue-500/30', textColor: 'text-blue-400', items: ['系统学习统计学与ML理论基础', '深入学习LLM前沿技术（RAG等）', '参与团队项目，完成基础科研任务', '争取发表第一篇论文'] },
-                { phase: 'Year 2', color: 'border-emerald-500/30', textColor: 'text-emerald-400', items: ['聚焦LLM文本理解核心课题', '结合语言学特征工程与深度学习', '参与商学智脑或ScholarClub开发', '为博士申请积累成果'] },
-                { phase: 'Long Term', color: 'border-purple-500/30', textColor: 'text-purple-400', items: ['申请顶级统计/AI方向博士', '进入前沿科研或产业界', '量化金融或大模型研究方向', '持续深耕跨学科交叉领域'] },
+                { phase: 'Year 1', color: 'border-blue-500/30', textColor: 'text-blue-400', items: ['系统掌握统计学理论与深度学习核心', '深入研究LLM底层架构（Attention、RLHF、RAG）', '参与AIM Lab核心项目，产出可发表成果', '复现至少两篇顶会论文并进行创新扩展'] },
+                { phase: 'Year 2', color: 'border-emerald-500/30', textColor: 'text-emerald-400', items: ['主导一个完整的LLM应用研究课题', '将语言学特征工程融入大模型可解释性研究', '深度参与商学智脑或ScholarClub核心模块开发', '以第一作者身份投递顶会或顶刊'] },
+                { phase: 'Long Term', color: 'border-purple-500/30', textColor: 'text-purple-400', items: ['申请全球顶级AI/统计方向博士（C9/港校/海外）', '聚焦大模型可解释性与语言结构建模前沿方向', '深耕NLP与统计学习的理论交叉研究', '在国际顶会（ACL/NeurIPS/ICML）持续发表'] },
             ];
 
             const whyItems = [
@@ -189,21 +433,8 @@
             return (
                 <div className="relative">
                     {presenterMode && (
-                        <div style={{position:'fixed',bottom:'2rem',left:'50%',transform:'translateX(-50%)',zIndex:99999,background:'rgba(0,0,0,0.85)',backdropFilter:'blur(20px)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:'9999px',padding:'0.75rem 2rem',display:'flex',alignItems:'center',gap:'1.5rem',color:'#fff',fontFamily:'Inter,sans-serif',fontSize:'13px',fontWeight:500,boxShadow:'0 8px 40px rgba(0,0,0,0.6)'}}>
-                            <span style={{color:'#60a5fa',letterSpacing:'0.1em',fontSize:'11px',textTransform:'uppercase',fontWeight:700}}>PRESENTER</span>
-                            <span style={{color:'#6b7280'}}>←</span>
-                            {sectionLabels.map((label, i) => (
-                                <span key={i} onClick={() => setPresenterIndex(i)} style={{cursor:'pointer',padding:'4px 12px',borderRadius:'9999px',background: i === presenterIndex ? 'rgba(96,165,250,0.2)' : 'transparent',color: i === presenterIndex ? '#60a5fa' : '#9ca3af',transition:'all 0.2s',fontSize:'12px'}}>
-                                    {label}
-                                </span>
-                            ))}
-                            <span style={{color:'#6b7280'}}>→</span>
-                            <span onClick={() => setPresenterMode(false)} style={{cursor:'pointer',color:'#ef4444',fontSize:'11px',marginLeft:'0.5rem'}}>ESC</span>
-                        </div>
-                    )}
-                    {presenterMode && (
-                        <div style={{position:'fixed',top:'1rem',right:'1rem',zIndex:99999,background:'rgba(96,165,250,0.15)',border:'1px solid rgba(96,165,250,0.3)',borderRadius:'8px',padding:'6px 14px',color:'#60a5fa',fontSize:'11px',fontWeight:700,letterSpacing:'0.1em'}}>
-                            {presenterIndex + 1} / {sections.length}
+                        <div style={{position:'fixed',bottom:'1.5rem',right:'1.5rem',zIndex:99999,background:'rgba(0,0,0,0.5)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:'8px',padding:'6px 12px',color:'rgba(255,255,255,0.35)',fontFamily:'Fira Code,monospace',fontSize:'11px',pointerEvents:'none',letterSpacing:'0.05em'}}>
+                            {presenterIndex + 1}/{sections.length} · {sectionLabels[presenterIndex]}
                         </div>
                     )}
                     <nav className="fixed top-0 w-full z-50 bg-black/60 backdrop-blur-md border-b border-white/10 min-h-[3.5rem] py-2 md:py-0 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 md:space-x-8 text-[10px] md:text-[12px] font-medium tracking-widest uppercase text-gray-400">
@@ -219,6 +450,7 @@
                     <section className="relative h-screen flex flex-col items-center justify-center overflow-hidden">
                         <img src="./image_0.png" className="absolute inset-0 w-full h-full object-cover hero-img loaded" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+                        <div className="absolute inset-0" style={{mixBlendMode:'screen',opacity:0.3}}><ParticleCanvas /></div>
                         <div className="relative z-10 text-center px-4 mt-32">
                             <h2 className="text-sm md:text-xl font-bold mb-4 text-blue-400 tracking-[0.2em] text-shadow-apple uppercase">Language Meets Logic</h2>
                             <h1 className="text-6xl md:text-[7rem] font-extrabold text-white leading-tight text-shadow-apple">
@@ -451,11 +683,26 @@
 
                     <section id="action" className="py-32 bg-black border-t border-white/10">
                         <div className="max-w-6xl mx-auto px-6">
+                            <div className="text-center reveal mb-10">
+                                <h3 className="text-blue-400 font-bold mb-3 tracking-widest uppercase text-sm">Live NLP Demo</h3>
+                                <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">实时句法复杂度分析。</h2>
+                                <p className="text-gray-400 max-w-2xl mx-auto font-light">论文核心算法的交互化实现。输入任意英文文本，实时计算14项句法指标并预测人机文本归属——这正是毕业论文随机森林模型的前端落地。</p>
+                            </div>
+                            <div className="reveal mb-12">
+                                <NLPAnalyzerPanel />
+                            </div>
+                            <div className="text-center reveal mb-10">
+                                <h3 className="text-purple-400 font-bold mb-3 tracking-widest uppercase text-sm">Transformer Attention</h3>
+                                <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">自注意力机制可视化。</h2>
+                                <p className="text-gray-400 max-w-2xl mx-auto font-light">选中任意token，观察其与序列中其他词的注意力权重分布——Transformer核心机制的交互式演示。</p>
+                            </div>
+                            <div className="reveal mb-24">
+                                <TransformerPanel />
+                            </div>
                             <div className="text-center reveal mb-16">
-                                <h2 className="text-4xl md:text-5xl font-bold mb-4 text-white">Real-time Quantitative Sentinel</h2>
-                                <p className="text-gray-400 max-w-2xl mx-auto font-light">
-                                    基于 Python 构建的实时数据监测流水线（Data Pipeline），涵盖从非结构化数据获取、清洗，到量化指标输出的端到端执行。
-                                </p>
+                                <h3 className="text-emerald-400 font-bold mb-3 tracking-widest uppercase text-sm">Quantitative Pipeline</h3>
+                                <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Real-time Quantitative Sentinel</h2>
+                                <p className="text-gray-400 max-w-2xl mx-auto font-light">将NLP文本处理管道迁移至金融场景——实时抓取市场语义信号，监测情绪指数变化，探索语言学方法在量化数据分析中的跨域应用。</p>
                             </div>
                             <div className="reveal">
                                 <LiveCrawlerPanel />
