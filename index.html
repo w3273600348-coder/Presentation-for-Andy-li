@@ -39,29 +39,11 @@
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
         .cursor-blink { animation: blink 1s step-end infinite; }
 
-        /* --- 手机端专项适配修复 --- */
         @media (max-width: 768px) {
-            /* 1. 解决封面图“只看黑板不看人”的问题，将视觉重心强制右移 80% */
-            .hero-img {
-                object-position: 80% center !important;
-            }
-
-            /* 2. 强制图片显示基础属性，防止特定移动端浏览器渲染失败 */
-            img {
-                display: block !important;
-                /* 修复手机端滚动触发延迟导致的透明度不恢复问题 */
-                opacity: 1 !important;
-            }
-
-            /* 3. 略微缩短移动端动画偏移距离，避免出框 */
-            .reveal {
-                transform: translateY(20px);
-            }
-
-            /* 4. 解决下半部分图片在手机端过高导致比例失调的问题 */
-            .md\:col-span-8 img {
-                height: 350px !important;
-            }
+            .hero-img { object-position: 80% center !important; }
+            img { display: block !important; opacity: 1 !important; }
+            .reveal { transform: translateY(20px); }
+            .md\:col-span-8 img { height: 350px !important; }
         }
     </style>
 </head>
@@ -145,6 +127,11 @@
             const [heroLoaded, setHeroLoaded] = useState(false);
             const [isContactOpen, setIsContactOpen] = useState(false);
             const [activeTech, setActiveTech] = useState(techStackData[0]);
+            const [presenterMode, setPresenterMode] = useState(false);
+            const [presenterIndex, setPresenterIndex] = useState(0);
+
+            const sections = ['hero', 'foundation', 'ecosystem', 'highlights', 'research', 'action', 'aimlab', 'summary'];
+            const sectionLabels = ['封面', 'Foundation', 'Ecosystem', 'Moments', 'Deep Dive', 'Live Demo', 'AIM Lab', 'Summary'];
 
             useEffect(() => {
                 setTimeout(() => setHeroLoaded(true), 100);
@@ -154,14 +141,79 @@
                 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
             }, []);
 
+            useEffect(() => {
+                const handleKey = (e) => {
+                    if (e.key === 'p' || e.key === 'P') {
+                        setPresenterMode(prev => !prev);
+                        return;
+                    }
+                    if (presenterMode) {
+                        if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'j' || e.key === 'J') {
+                            setPresenterIndex(prev => Math.min(prev + 1, sections.length - 1));
+                        }
+                        if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'k' || e.key === 'K') {
+                            setPresenterIndex(prev => Math.max(prev - 1, 0));
+                        }
+                        if (e.key === 'Escape') {
+                            setPresenterMode(false);
+                        }
+                    }
+                };
+                window.addEventListener('keydown', handleKey);
+                return () => window.removeEventListener('keydown', handleKey);
+            }, [presenterMode]);
+
+            useEffect(() => {
+                if (!presenterMode) return;
+                const targetId = sections[presenterIndex];
+                if (targetId === 'hero') {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                    const el = document.getElementById(targetId);
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, [presenterIndex, presenterMode]);
+
+            const planData = [
+                { phase: 'Year 1', color: 'border-blue-500/30', textColor: 'text-blue-400', items: ['系统学习统计学与ML理论基础', '深入学习LLM前沿技术（RAG等）', '参与团队项目，完成基础科研任务', '争取发表第一篇论文'] },
+                { phase: 'Year 2', color: 'border-emerald-500/30', textColor: 'text-emerald-400', items: ['聚焦LLM文本理解核心课题', '结合语言学特征工程与深度学习', '参与商学智脑或ScholarClub开发', '为博士申请积累成果'] },
+                { phase: 'Long Term', color: 'border-purple-500/30', textColor: 'text-purple-400', items: ['申请顶级统计/AI方向博士', '进入前沿科研或产业界', '量化金融或大模型研究方向', '持续深耕跨学科交叉领域'] },
+            ];
+
+            const whyItems = [
+                { color: 'text-blue-400', label: '国际顶尖视野', desc: 'UF终身教授 + 全美深度学习中心创始人，200余篇顶级论文，培养学生遍布美国知名高校。' },
+                { color: 'text-emerald-400', label: '商学智脑 · NLP直接对口', desc: 'BizBrain-GEST融合LLM与知识图谱，聚焦经济文本智能化——正是语言学背景发挥价值之处。' },
+                { color: 'text-purple-400', label: '语言 × AI 交叉前沿', desc: '团队横跨NLP、CV、联邦学习，为跨学科思维提供最好的成长土壤。' },
+            ];
+
             return (
                 <div className="relative">
+                    {presenterMode && (
+                        <div style={{position:'fixed',bottom:'2rem',left:'50%',transform:'translateX(-50%)',zIndex:99999,background:'rgba(0,0,0,0.85)',backdropFilter:'blur(20px)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:'9999px',padding:'0.75rem 2rem',display:'flex',alignItems:'center',gap:'1.5rem',color:'#fff',fontFamily:'Inter,sans-serif',fontSize:'13px',fontWeight:500,boxShadow:'0 8px 40px rgba(0,0,0,0.6)'}}>
+                            <span style={{color:'#60a5fa',letterSpacing:'0.1em',fontSize:'11px',textTransform:'uppercase',fontWeight:700}}>PRESENTER</span>
+                            <span style={{color:'#6b7280'}}>←</span>
+                            {sectionLabels.map((label, i) => (
+                                <span key={i} onClick={() => setPresenterIndex(i)} style={{cursor:'pointer',padding:'4px 12px',borderRadius:'9999px',background: i === presenterIndex ? 'rgba(96,165,250,0.2)' : 'transparent',color: i === presenterIndex ? '#60a5fa' : '#9ca3af',transition:'all 0.2s',fontSize:'12px'}}>
+                                    {label}
+                                </span>
+                            ))}
+                            <span style={{color:'#6b7280'}}>→</span>
+                            <span onClick={() => setPresenterMode(false)} style={{cursor:'pointer',color:'#ef4444',fontSize:'11px',marginLeft:'0.5rem'}}>ESC</span>
+                        </div>
+                    )}
+                    {presenterMode && (
+                        <div style={{position:'fixed',top:'1rem',right:'1rem',zIndex:99999,background:'rgba(96,165,250,0.15)',border:'1px solid rgba(96,165,250,0.3)',borderRadius:'8px',padding:'6px 14px',color:'#60a5fa',fontSize:'11px',fontWeight:700,letterSpacing:'0.1em'}}>
+                            {presenterIndex + 1} / {sections.length}
+                        </div>
+                    )}
                     <nav className="fixed top-0 w-full z-50 bg-black/60 backdrop-blur-md border-b border-white/10 min-h-[3.5rem] py-2 md:py-0 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 md:space-x-8 text-[10px] md:text-[12px] font-medium tracking-widest uppercase text-gray-400">
                         <span className="text-white font-bold tracking-normal text-sm md:text-lg w-full md:w-auto text-center mb-1 md:mb-0">王润泽</span>
                         <a href="#foundation" className="hover:text-white transition-colors">Foundation</a>
                         <a href="#ecosystem" className="hover:text-white transition-colors">Ecosystem</a>
                         <a href="#research" className="hover:text-white transition-colors">Deep Dive</a>
                         <a href="#action" className="hover:text-white transition-colors">Live Demo</a>
+                        <a href="#aimlab" className="hover:text-white transition-colors text-blue-400">AIM Lab</a>
+                        <span onClick={() => setPresenterMode(p => !p)} className="cursor-pointer ml-2 px-3 py-1 rounded-full border border-white/20 hover:border-blue-400/60 hover:text-blue-400 transition-all text-[10px]" style={{background: presenterMode ? 'rgba(96,165,250,0.15)' : 'transparent', color: presenterMode ? '#60a5fa' : ''}}>{presenterMode ? '● LIVE' : 'P · PRESENT'}</span>
                     </nav>
 
                     <section className="relative h-screen flex flex-col items-center justify-center overflow-hidden">
@@ -190,14 +242,14 @@
                                             <span className="text-xl font-medium text-white">北京航空航天大学 (Beihang University)</span>
                                             <span className="text-sm text-gray-500 font-medium">2022 - 2026</span>
                                         </div>
-                                        <p className="text-md text-blue-400 font-medium mb-2">语言学专业学士 (BA in Linguistics)</p>
+                                        <p className="text-md text-blue-400 font-medium mb-2">语言科学与工程（BA in Language Science and Engineering）</p>
                                     </div>
                                     <div className="pt-4 border-t border-white/5">
                                         <div className="flex justify-between items-start mb-1">
                                             <span className="text-xl font-medium text-white">剑桥大学 (University of Cambridge)</span>
                                             <span className="text-sm text-gray-500 font-medium">2023</span>
                                         </div>
-                                        <p className="text-md text-blue-400 font-medium mb-2">自然科学与量子力学模块访学</p>
+                                        <p className="text-md text-blue-400 font-medium mb-2">数理建模与科学计算模块访学</p>
                                     </div>
                                 </div>
                             </div>
@@ -208,7 +260,7 @@
                                     <div className="flex items-start">
                                         <span className="text-blue-500 mr-4 mt-1">●</span>
                                         <div>
-                                            <div className="text-white font-medium text-lg mb-1">工信部“语言信息与智能计算”重点实验室 & 中宣部舆情实验室</div>
+                                            <div className="text-white font-medium text-lg mb-1">工信部"语言信息与智能计算"重点实验室 & 中宣部舆情实验室</div>
                                             <div className="text-sm text-gray-400 leading-relaxed mb-1">
                                                 主导《基于语料库的习近平新时代中国特色社会主义思想核心概念及其外宣策略研究》。获 <strong>航语杯一等奖</strong>。
                                             </div>
@@ -225,7 +277,7 @@
                                         <span className="text-blue-500 mr-4 mt-1">●</span>
                                         <div>
                                             <div className="text-white font-medium text-lg mb-1">前沿算法探索与应用</div>
-                                            <div className="text-sm text-gray-400 leading-relaxed">深入推演《Distinguishing Human from Machine》，将随机森林等集成算法引入句法提取系统。</div>
+                                            <div className="text-sm text-gray-400 leading-relaxed">深入推演《Distinguishing Human from Machine》，将随机森林等集成算法引入句法提取系统，300篇语料库，10折交叉验证，准确率94%。</div>
                                         </div>
                                     </div>
                                 </div>
@@ -314,22 +366,85 @@
                                 <h3 className="text-pink-500 font-bold mb-4 tracking-widest uppercase text-sm">Sentiment Analysis</h3>
                                 <h2 className="text-5xl font-bold mb-8 text-white">媒体话语的情感测量。</h2>
                                 <p className="text-gray-400 text-lg font-light leading-relaxed mb-8">
-                                    对后疫情时代经济报道进行时间序列分析与强搭配提取。量化呈现“积极词汇”与“事实词汇”的演变倾斜。
+                                    对后疫情时代经济报道进行时间序列分析与强搭配提取。量化呈现"积极词汇"与"事实词汇"的演变倾斜。
                                 </p>
                             </div>
                         </div>
 
-                        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-20 items-center">
+                        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-20 items-center mb-32 border-b border-white/5 pb-32">
                             <div className="reveal">
                                 <h3 className="text-blue-500 font-bold mb-4 tracking-widest uppercase text-sm">Machine Learning</h3>
                                 <h2 className="text-5xl font-bold mb-8 leading-tight text-white">挖掘句法的隐形指纹。</h2>
-                                <p className="text-gray-400 text-lg font-light leading-relaxed mb-8">
+                                <p className="text-gray-400 text-lg font-light leading-relaxed mb-6">
                                     训练随机森林分类器，针对 14 个句法维度进行 Gini Importance 计算。模型锁定 <strong>CN/T (复杂名词短语)</strong> 为判别特征的决定性指标。
+                                </p>
+                                <p className="text-gray-400 text-lg font-light leading-relaxed">
+                                    大模型通过<strong>短语压缩</strong>模拟学术语体——CN/T值对应专家写作水平，而非中级二语学习者，这一跨发展阶段的模拟使句法特征成为话题无关的诊断工具。
                                 </p>
                             </div>
                             <div className="reveal glass p-6 rounded-[2.5rem] shadow-[0_0_50px_rgba(0,113,227,0.1)]">
                                 <img src="./importance_chart.png" className="w-full h-auto rounded-2xl" />
                                 <p className="mt-6 text-center text-[11px] text-gray-500 font-light italic uppercase tracking-widest">Fig 3.0: RF Feature Importance Analysis</p>
+                            </div>
+                        </div>
+
+                        <div className="max-w-7xl mx-auto px-6 mb-32 border-b border-white/5 pb-32">
+                            <div className="reveal text-center mb-16">
+                                <h3 className="text-cyan-400 font-bold mb-4 tracking-widest uppercase text-sm">Research Pipeline</h3>
+                                <h2 className="text-4xl font-bold text-white">端到端研究流程。</h2>
+                            </div>
+                            <div className="reveal glass p-8 rounded-[2.5rem]">
+                                <svg viewBox="0 0 900 160" xmlns="http://www.w3.org/2000/svg" style={{width:"100%",height:"auto"}}>
+                                    <defs>
+                                        <marker id="arr" markerWidth="8" markerHeight="6" refX="6" refY="3" orient="auto">
+                                            <path d="M0,0 L0,6 L8,3 z" fill="#4b5563"/>
+                                        </marker>
+                                    </defs>
+                                    <rect x="20" y="20" width="140" height="120" rx="12" fill="rgba(255,255,255,0.03)" stroke="#22c55e" strokeWidth="1.5"/>
+                                    <rect x="20" y="20" width="140" height="4" rx="2" fill="#22c55e"/>
+                                    <text x="90" y="60" textAnchor="middle" fill="white" fontSize="13" fontWeight="600" fontFamily="Inter,sans-serif">语料库构建</text>
+                                    <text x="90" y="82" textAnchor="middle" fill="#9ca3af" fontSize="10" fontFamily="Inter,sans-serif">300篇平行文本</text>
+                                    <text x="90" y="98" textAnchor="middle" fill="#9ca3af" fontSize="10" fontFamily="Inter,sans-serif">Human vs Gemini</text>
+                                    <line x1="168" y1="80" x2="202" y2="80" stroke="#4b5563" strokeWidth="1.5" markerEnd="url(#arr)"/>
+
+                                    <rect x="210" y="20" width="140" height="120" rx="12" fill="rgba(255,255,255,0.03)" stroke="#06b6d4" strokeWidth="1.5"/>
+                                    <rect x="210" y="20" width="140" height="4" rx="2" fill="#06b6d4"/>
+                                    <text x="280" y="60" textAnchor="middle" fill="white" fontSize="13" fontWeight="600" fontFamily="Inter,sans-serif">L2SCA提取</text>
+                                    <text x="280" y="82" textAnchor="middle" fill="#9ca3af" fontSize="10" fontFamily="Inter,sans-serif">14项句法指标</text>
+                                    <text x="280" y="98" textAnchor="middle" fill="#9ca3af" fontSize="10" fontFamily="Inter,sans-serif">自动化批量处理</text>
+                                    <line x1="358" y1="80" x2="392" y2="80" stroke="#4b5563" strokeWidth="1.5" markerEnd="url(#arr)"/>
+
+                                    <rect x="400" y="20" width="140" height="120" rx="12" fill="rgba(255,255,255,0.03)" stroke="#a78bfa" strokeWidth="1.5"/>
+                                    <rect x="400" y="20" width="140" height="4" rx="2" fill="#a78bfa"/>
+                                    <text x="470" y="60" textAnchor="middle" fill="white" fontSize="13" fontWeight="600" fontFamily="Inter,sans-serif">统计检验</text>
+                                    <text x="470" y="82" textAnchor="middle" fill="#9ca3af" fontSize="10" fontFamily="Inter,sans-serif">Mann-Whitney U</text>
+                                    <text x="470" y="98" textAnchor="middle" fill="#9ca3af" fontSize="10" fontFamily="Inter,sans-serif">效应量计算</text>
+                                    <line x1="548" y1="80" x2="582" y2="80" stroke="#4b5563" strokeWidth="1.5" markerEnd="url(#arr)"/>
+
+                                    <rect x="590" y="20" width="140" height="120" rx="12" fill="rgba(255,255,255,0.03)" stroke="#f59e0b" strokeWidth="1.5"/>
+                                    <rect x="590" y="20" width="140" height="4" rx="2" fill="#f59e0b"/>
+                                    <text x="660" y="60" textAnchor="middle" fill="white" fontSize="13" fontWeight="600" fontFamily="Inter,sans-serif">随机森林</text>
+                                    <text x="660" y="82" textAnchor="middle" fill="#9ca3af" fontSize="10" fontFamily="Inter,sans-serif">Scikit-learn</text>
+                                    <text x="660" y="98" textAnchor="middle" fill="#9ca3af" fontSize="10" fontFamily="Inter,sans-serif">10折交叉验证</text>
+                                    <line x1="738" y1="80" x2="772" y2="80" stroke="#4b5563" strokeWidth="1.5" markerEnd="url(#arr)"/>
+
+                                    <rect x="780" y="20" width="120" height="120" rx="12" fill="rgba(239,68,68,0.08)" stroke="#ef4444" strokeWidth="1.5"/>
+                                    <rect x="780" y="20" width="120" height="4" rx="2" fill="#ef4444"/>
+                                    <text x="840" y="60" textAnchor="middle" fill="white" fontSize="13" fontWeight="600" fontFamily="Inter,sans-serif">结果输出</text>
+                                    <text x="840" y="82" textAnchor="middle" fill="#ef4444" fontSize="11" fontWeight="600" fontFamily="Inter,sans-serif">准确率 94%</text>
+                                    <text x="840" y="98" textAnchor="middle" fill="#9ca3af" fontSize="10" fontFamily="Inter,sans-serif">CN/T Gini 0.188</text>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-start">
+                            <div className="reveal glass p-6 rounded-[2.5rem] bg-[#111]">
+                                <img src="./plot.png" className="w-full h-auto rounded-2xl" />
+                                <p className="mt-6 text-center text-[11px] text-gray-500 font-light italic uppercase tracking-widest">Fig 4.0: CN/T Distribution · Human vs. Gemini</p>
+                            </div>
+                            <div className="reveal glass p-6 rounded-[2.5rem] bg-[#111]">
+                                <img src="./matrix.png" className="w-full h-auto rounded-2xl" />
+                                <p className="mt-6 text-center text-[11px] text-gray-500 font-light italic uppercase tracking-widest">Fig 5.0: Confusion Matrix · Test Set Accuracy 95%</p>
                             </div>
                         </div>
                     </section>
@@ -348,11 +463,91 @@
                         </div>
                     </section>
 
+                    <section id="aimlab" className="py-32 bg-[#0a0a0a] border-t border-white/10">
+                        <div className="max-w-7xl mx-auto px-6">
+
+                            <div className="text-center reveal mb-24">
+                                <h3 className="text-blue-400 font-bold mb-4 tracking-widest uppercase text-sm">Why AIM Lab</h3>
+                                <h2 className="text-5xl md:text-7xl font-bold text-white mb-6">加入李晓林教授团队。</h2>
+                                <p className="text-gray-400 max-w-2xl mx-auto font-light text-lg">语言学视角 × 统计建模 × 大语言模型，三个维度的交汇点。</p>
+                            </div>
+
+                            <div className="grid md:grid-cols-2 gap-20 items-center mb-32 border-b border-white/5 pb-32">
+                                <div className="reveal">
+                                    <h3 className="text-emerald-500 font-bold mb-4 tracking-widest uppercase text-sm">Research Fit</h3>
+                                    <h2 className="text-4xl font-bold mb-8 text-white leading-tight">从 ScholarClub 看到契合点。</h2>
+                                    <p className="text-gray-400 text-lg font-light leading-relaxed mb-6">
+                                        ScholarClub 的核心能力是对学术文献的智能理解与检索。我在毕业论文中做的正是：通过句法特征分析，让机器理解文本的深层结构——而不只是词频统计。
+                                    </p>
+                                    <p className="text-gray-400 text-lg font-light leading-relaxed">
+                                        这种对语言结构的建模能力，可以直接迁移到学术文本的语义理解任务。我的语言学背景在团队中是稀缺视角。
+                                    </p>
+                                </div>
+                                <div className="reveal grid grid-cols-2 gap-4">
+                                    <div className="glass p-6 rounded-3xl flex flex-col justify-center text-center">
+                                        <div className="text-5xl font-bold text-emerald-400 mb-2">94%</div>
+                                        <div className="text-xs text-gray-500 uppercase tracking-widest">检测准确率</div>
+                                    </div>
+                                    <div className="glass p-6 rounded-3xl flex flex-col justify-center text-center">
+                                        <div className="text-5xl font-bold text-blue-400 mb-2">0.58</div>
+                                        <div className="text-xs text-gray-500 uppercase tracking-widest">CN/T Gini</div>
+                                    </div>
+                                    <div className="glass p-6 rounded-3xl flex flex-col justify-center text-center">
+                                        <div className="text-5xl font-bold text-purple-400 mb-2">300</div>
+                                        <div className="text-xs text-gray-500 uppercase tracking-widest">语料库规模</div>
+                                    </div>
+                                    <div className="glass p-6 rounded-3xl flex flex-col justify-center text-center">
+                                        <div className="text-5xl font-bold text-orange-400 mb-2">14</div>
+                                        <div className="text-xs text-gray-500 uppercase tracking-widest">句法特征维度</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="grid md:grid-cols-2 gap-20 items-center mb-32 border-b border-white/5 pb-32">
+                                <div className="reveal order-2 md:order-1 space-y-6">
+                                    {whyItems.map((item, i) => (
+                                        <div key={i} className="glass p-6 rounded-2xl">
+                                            <div className={`text-sm font-bold ${item.color} uppercase tracking-widest mb-2`}>{item.label}</div>
+                                            <div className="text-gray-400 font-light leading-relaxed">{item.desc}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="reveal order-1 md:order-2">
+                                    <h3 className="text-purple-400 font-bold mb-4 tracking-widest uppercase text-sm">Why Me</h3>
+                                    <h2 className="text-4xl font-bold mb-8 text-white leading-tight">差异化贡献。</h2>
+                                    <p className="text-gray-400 text-lg font-light leading-relaxed">
+                                        当团队大多数成员从工程角度理解语言时，我能从语言规律本身出发——句法结构、话语模式、特征先验——提供不同维度的研究视角。
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="reveal">
+                                <h3 className="text-orange-400 font-bold mb-4 tracking-widest uppercase text-sm text-center">Master's Plan</h3>
+                                <h2 className="text-4xl font-bold mb-12 text-white text-center">硕士阶段规划。</h2>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    {planData.map((col, i) => (
+                                        <div key={i} className={`glass p-8 rounded-3xl border ${col.color}`}>
+                                            <div className={`text-sm font-bold uppercase tracking-widest mb-6 ${col.textColor}`}>{col.phase}</div>
+                                            <ul className="space-y-3">
+                                                {col.items.map((item, j) => (
+                                                    <li key={j} className="flex items-start gap-3 text-gray-400 font-light text-sm leading-relaxed">
+                                                        <span className={`mt-1 flex-shrink-0 ${col.textColor}`}>●</span>
+                                                        {item}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                        </div>
+                    </section>
+
                     <section id="summary" className="py-32 bg-[#050505] reveal border-t border-white/5">
                         <div className="max-w-7xl mx-auto px-6 text-center">
                             <h2 className="text-5xl md:text-[80px] font-extrabold tracking-tighter mb-6 text-gradient">Supercharged by Statistics.</h2>
                             <p className="text-xl text-gray-400 mb-20 font-light">跨界架构，重新定义核心竞争力。</p>
-
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-12 py-12">
                                 <div className="p-6">
                                     <div className="text-3xl md:text-5xl font-bold text-white mb-4">Beihang</div>
@@ -381,7 +576,6 @@
                                 将语言、数据与 AI 结合，<br/>创造无限可能。
                             </h2>
                             <button onClick={() => setIsContactOpen(true)} className="apple-btn text-lg px-12 py-4">联系我</button>
-
                             <div className="mt-32 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center text-[11px] text-gray-500 font-medium uppercase tracking-widest">
                                 <span>Built for High-Frequency Logic & Execution</span>
                                 <span className="mt-4 md:mt-0">Copyright © 2026 王润泽.</span>
@@ -393,17 +587,16 @@
                         <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-black/60 backdrop-blur-xl p-4 modal-enter">
                             <div className="absolute inset-0 cursor-pointer" onClick={() => setIsContactOpen(false)}></div>
                             <div className="bg-[#1c1c1e] w-full max-w-sm rounded-[2rem] p-8 border border-white/10 relative text-center shadow-2xl">
-                                <button onClick={() => setIsContactOpen(false)} className="absolute top-5 right-5 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors text-white">✕</button>
+                                <button onClick={() => setIsContactOpen(false)} className="absolute top-5 right-5 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-content text-white">✕</button>
                                 <img src="./image_1.png" className="w-20 h-20 mx-auto rounded-full object-cover mb-6 border-2 border-white/10" />
                                 <h3 className="text-2xl font-bold mb-1 text-white">王润泽</h3>
                                 <p className="text-gray-400 text-xs mb-8 uppercase tracking-widest">Linguistics & Statistics</p>
-
                                 <div className="space-y-4 text-left">
-                                    <div className="bg-black/50 p-4 rounded-2xl border border-white/5 transition-colors hover:bg-black/80">
+                                    <div className="bg-black/50 p-4 rounded-2xl border border-white/5">
                                         <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Email</p>
                                         <p className="text-lg font-medium text-blue-400 select-all">w3273600348@gmail.com</p>
                                     </div>
-                                    <div className="bg-black/50 p-4 rounded-2xl border border-white/5 transition-colors hover:bg-black/80">
+                                    <div className="bg-black/50 p-4 rounded-2xl border border-white/5">
                                         <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Phone / WeChat</p>
                                         <p className="text-lg font-medium text-white select-all">+86 1513840022</p>
                                     </div>
