@@ -238,70 +238,150 @@
             );
         };
 
-        const NLPAnalyzerPanel = () => {
-            const [inputText, setInputText] = React.useState('The acquisition of complex nominal structures represents a key developmental milestone in academic writing proficiency.');
-            const [result, setResult] = React.useState(null);
-            const [analyzing, setAnalyzing] = React.useState(false);
+        const API_URL = 'https://random-forest-api-x3x1.onrender.com';
 
-            const analyze = () => {
-                setAnalyzing(true);
-                setTimeout(() => {
-                    const words = inputText.trim().split(/\s+/).length;
-                    const sentences = inputText.split(/[.!?]+/).filter(s => s.trim()).length || 1;
-                    const clauses = (inputText.match(/,|;|which|that|when|because|although/gi) || []).length + sentences;
-                    const nominals = (inputText.match(/\b(the|a|an)\s+\w+\s+(of|in|for|with|on)\b/gi) || []).length + 
-                                     (inputText.match(/\w+tion\b|\w+ment\b|\w+ity\b/gi) || []).length;
-                    const mls = (words / sentences).toFixed(2);
-                    const cnt = (nominals / (sentences * 0.8)).toFixed(3);
-                    const score = cnt > 2.0 ? 'AI-Generated' : 'Human-Authored';
-                    const confidence = cnt > 2.5 ? 94 : cnt > 1.8 ? 72 : 61;
-                    setResult({ words, sentences, clauses, nominals, mls, cnt, score, confidence });
-                    setAnalyzing(false);
-                }, 900);
+        // 预设样本：论文中真实的L2SCA指标数据
+        const SAMPLES = [
+            {
+                label: '🧑 Human Sample A',
+                desc: '学生议论文 · 典型人类写作',
+                type: 'human',
+                features: { MLS:22.1, MLT:19.2, MLC:11.7, C_S:1.88, C_T:1.62, CT_T:0.75, DC_C:0.45, DC_T:0.76, CP_T:0.55, CP_C:0.35, CN_T:1.72, CN_C:1.08, T_S:1.16, VP_T:2.01 }
+            },
+            {
+                label: '🧑 Human Sample B',
+                desc: '学生议论文 · 句式较复杂',
+                type: 'human',
+                features: { MLS:23.4, MLT:20.1, MLC:12.2, C_S:1.92, C_T:1.68, CT_T:0.78, DC_C:0.47, DC_T:0.79, CP_T:0.59, CP_C:0.37, CN_T:1.85, CN_C:1.13, T_S:1.17, VP_T:2.08 }
+            },
+            {
+                label: '🤖 AI Sample A',
+                desc: 'Gemini Pro 1.5 生成 · 标准输出',
+                type: 'ai',
+                features: { MLS:19.6, MLT:18.9, MLC:10.8, C_S:1.83, C_T:1.77, CT_T:0.79, DC_C:0.45, DC_T:0.80, CP_T:0.65, CP_C:0.37, CN_T:2.65, CN_C:1.51, T_S:1.03, VP_T:2.57 }
+            },
+            {
+                label: '🤖 AI Sample B',
+                desc: 'Gemini Pro 1.5 生成 · CN/T极高',
+                type: 'ai',
+                features: { MLS:18.9, MLT:18.4, MLC:10.5, C_S:1.81, C_T:1.79, CT_T:0.80, DC_C:0.44, DC_T:0.78, CP_T:0.67, CP_C:0.38, CN_T:2.91, CN_C:1.62, T_S:1.02, VP_T:2.68 }
+            },
+        ];
+
+        const NLPAnalyzerPanel = () => {
+            const [selected, setSelected] = React.useState(null);
+            const [result, setResult] = React.useState(null);
+            const [loading, setLoading] = React.useState(false);
+            const [error, setError] = React.useState(null);
+
+            const runPrediction = async (sample) => {
+                setSelected(sample.label);
+                setResult(null);
+                setError(null);
+                setLoading(true);
+                try {
+                    const res = await fetch(`${API_URL}/predict`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(sample.features)
+                    });
+                    const data = await res.json();
+                    if (data.status === 'success') {
+                        setResult({ ...data, features: sample.features, sampleType: sample.type });
+                    } else {
+                        setError(data.message);
+                    }
+                } catch(e) {
+                    setError('API连接失败: ' + e.message);
+                } finally {
+                    setLoading(false);
+                }
             };
+
+            const keyFeatures = result ? [
+                { name: 'CN/T', value: result.features.CN_T.toFixed(2), desc: '最强判别指标', highlight: true },
+                { name: 'MLS', value: result.features.MLS.toFixed(1), desc: '句均词数', highlight: false },
+                { name: 'T/S', value: result.features.T_S.toFixed(2), desc: 'T单元/句', highlight: false },
+                { name: 'VP/T', value: result.features.VP_T.toFixed(2), desc: '动词短语密度', highlight: false },
+            ] : [];
 
             return (
                 <div className="bg-[#0a0a0a] rounded-[2rem] p-6 border border-white/10 shadow-2xl">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="w-2 h-2 rounded-full bg-blue-400"></div>
-                        <span className="text-xs text-gray-500 font-mono uppercase tracking-widest">Syntactic Complexity Analyzer · L2SCA Demo</span>
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></div>
+                        <span className="text-xs text-gray-500 font-mono uppercase tracking-widest">Random Forest Classifier · Real Model · 94% Accuracy</span>
                     </div>
-                    <textarea
-                        value={inputText}
-                        onChange={e => setInputText(e.target.value)}
-                        className="w-full bg-black/60 border border-white/10 rounded-xl p-4 text-gray-300 text-sm font-light resize-none focus:outline-none focus:border-blue-500/50 transition-colors"
-                        rows={3}
-                        placeholder="输入任意英文文本进行句法分析..."
-                    />
-                    <button onClick={analyze} disabled={analyzing}
-                        className="mt-3 px-6 py-2 rounded-full bg-blue-500/20 border border-blue-500/30 text-blue-400 text-sm font-medium hover:bg-blue-500/30 transition-all disabled:opacity-40">
-                        {analyzing ? 'Analyzing...' : 'Run Analysis →'}
-                    </button>
-                    {result && (
-                        <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
-                            {[
-                                { label: 'MLS', value: result.mls, desc: 'Mean Length / Sentence', color: 'text-cyan-400' },
-                                { label: 'CN/T', value: result.cnt, desc: 'Complex Nominals / T-unit', color: result.cnt > 2.0 ? 'text-red-400' : 'text-green-400' },
-                                { label: 'Clauses', value: result.clauses, desc: 'Total Clause Count', color: 'text-purple-400' },
-                                { label: 'Nominals', value: result.nominals, desc: 'Complex Nominal Count', color: 'text-amber-400' },
-                            ].map((m, i) => (
-                                <div key={i} className="bg-white/5 rounded-xl p-3 border border-white/5">
-                                    <div className={`text-2xl font-bold font-mono ${m.color}`}>{m.value}</div>
-                                    <div className="text-[10px] text-gray-500 mt-1 uppercase tracking-widest">{m.label}</div>
-                                    <div className="text-[10px] text-gray-600 mt-0.5">{m.desc}</div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                        {SAMPLES.map((s, i) => (
+                            <button key={i} onClick={() => runPrediction(s)}
+                                className="p-4 rounded-2xl border text-left transition-all duration-200"
+                                style={{
+                                    background: selected === s.label ? (s.type === 'human' ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)') : 'rgba(255,255,255,0.03)',
+                                    borderColor: selected === s.label ? (s.type === 'human' ? 'rgba(34,197,94,0.4)' : 'rgba(239,68,68,0.4)') : 'rgba(255,255,255,0.08)',
+                                }}>
+                                <div className="text-sm font-medium text-white mb-1">{s.label}</div>
+                                <div className="text-xs text-gray-500">{s.desc}</div>
+                            </button>
+                        ))}
+                    </div>
+
+                    {loading && (
+                        <div className="flex items-center gap-3 py-8 justify-center text-gray-400">
+                            <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+                            <span className="font-mono text-sm">Running Random Forest inference...</span>
+                        </div>
+                    )}
+
+                    {error && (
+                        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-400 text-sm">{error}</div>
+                    )}
+
+                    {result && !loading && (
+                        <div className="space-y-4">
+                            <div className="flex flex-col md:flex-row gap-4">
+                                <div className="flex-1 rounded-2xl p-6 border flex flex-col justify-center"
+                                    style={{
+                                        background: result.sampleType === 'human' ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)',
+                                        borderColor: result.sampleType === 'human' ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)',
+                                    }}>
+                                    <div className="text-xs text-gray-500 uppercase tracking-widest mb-2">Model Verdict</div>
+                                    <div className={`text-3xl font-bold mb-2 ${result.label === 'AI-Generated' ? 'text-red-400' : 'text-emerald-400'}`}>
+                                        {result.label}
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                                            <div className={`h-full rounded-full transition-all duration-1000 ${result.label === 'AI-Generated' ? 'bg-red-400' : 'bg-emerald-400'}`}
+                                                style={{width: result.confidence + '%'}}></div>
+                                        </div>
+                                        <span className="text-white font-bold text-lg font-mono">{result.confidence}%</span>
+                                    </div>
+                                    <div className="mt-3 flex gap-4 text-xs text-gray-500">
+                                        <span>Human: <span className="text-emerald-400">{result.human_probability}%</span></span>
+                                        <span>AI: <span className="text-red-400">{result.ai_probability}%</span></span>
+                                    </div>
                                 </div>
-                            ))}
-                            <div className="col-span-2 md:col-span-4 bg-white/5 rounded-xl p-4 border border-white/5 flex items-center justify-between">
-                                <div>
-                                    <div className="text-xs text-gray-500 uppercase tracking-widest mb-1">Model Prediction</div>
-                                    <div className={`text-xl font-bold ${result.score === 'AI-Generated' ? 'text-red-400' : 'text-green-400'}`}>{result.score}</div>
+
+                                <div className="flex-1 grid grid-cols-2 gap-3">
+                                    {keyFeatures.map((f, i) => (
+                                        <div key={i} className="bg-white/5 rounded-xl p-3 border border-white/5">
+                                            <div className={`text-xl font-bold font-mono ${f.highlight ? (result.sampleType === 'ai' ? 'text-red-400' : 'text-emerald-400') : 'text-blue-400'}`}>
+                                                {f.value}
+                                            </div>
+                                            <div className="text-xs text-white mt-1 font-medium">{f.name}</div>
+                                            <div className="text-[10px] text-gray-600">{f.desc}</div>
+                                        </div>
+                                    ))}
                                 </div>
-                                <div className="text-right">
-                                    <div className="text-xs text-gray-500 uppercase tracking-widest mb-1">Confidence</div>
-                                    <div className="text-xl font-bold text-white">{result.confidence}%</div>
-                                </div>
-                                <div className="w-32 h-2 bg-white/10 rounded-full overflow-hidden">
-                                    <div className={`h-full rounded-full transition-all duration-700 ${result.score === 'AI-Generated' ? 'bg-red-400' : 'bg-green-400'}`} style={{width: result.confidence + '%'}}></div>
+                            </div>
+
+                            <div className="bg-white/5 rounded-xl p-4 border border-white/5">
+                                <div className="text-xs text-gray-500 uppercase tracking-widest mb-2">Model Reasoning</div>
+                                <div className="text-sm text-gray-300 font-light leading-relaxed">
+                                    {result.sampleType === 'ai'
+                                        ? `CN/T = ${result.features.CN_T.toFixed(2)}，显著高于人类均值 1.80。大型语言模型通过名词化压缩策略模拟专家级学术语体，导致复合名词短语密度超过二语学习者的发展水平。`
+                                        : `CN/T = ${result.features.CN_T.toFixed(2)}，落在人类作者典型区间（均值 1.80）。句法复杂度模式与中级二语学习者写作特征一致，非AI生成文本。`
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -374,8 +454,8 @@
             const [presenterMode, setPresenterMode] = useState(false);
             const [presenterIndex, setPresenterIndex] = useState(0);
 
-            const sections = ['hero', 'foundation', 'ecosystem', 'highlights', 'research', 'action', 'aimlab', 'summary'];
-            const sectionLabels = ['封面', 'Foundation', 'Ecosystem', 'Moments', 'Deep Dive', 'Live Demo', 'AIM Lab', 'Summary'];
+            const sections = ['hero', 'about', 'highlights', 'foundation', 'research', 'action', 'aimlab', 'summary'];
+            const sectionLabels = ['封面', 'About', 'Moments', 'Foundation', 'Research', 'Live Demo', 'AIM Lab', 'Summary'];
 
             useEffect(() => {
                 setTimeout(() => setHeroLoaded(true), 100);
@@ -439,9 +519,10 @@
                     )}
                     <nav className="fixed top-0 w-full z-50 bg-black/60 backdrop-blur-md border-b border-white/10 min-h-[3.5rem] py-2 md:py-0 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 md:space-x-8 text-[10px] md:text-[12px] font-medium tracking-widest uppercase text-gray-400">
                         <span className="text-white font-bold tracking-normal text-sm md:text-lg w-full md:w-auto text-center mb-1 md:mb-0">王润泽</span>
+                        <a href="#about" className="hover:text-white transition-colors">About</a>
+                        <a href="#highlights" className="hover:text-white transition-colors">Moments</a>
                         <a href="#foundation" className="hover:text-white transition-colors">Foundation</a>
-                        <a href="#ecosystem" className="hover:text-white transition-colors">Ecosystem</a>
-                        <a href="#research" className="hover:text-white transition-colors">Deep Dive</a>
+                        <a href="#research" className="hover:text-white transition-colors">Research</a>
                         <a href="#action" className="hover:text-white transition-colors">Live Demo</a>
                         <a href="#aimlab" className="hover:text-white transition-colors text-blue-400">AIM Lab</a>
                         <span onClick={() => setPresenterMode(p => !p)} className="cursor-pointer ml-2 px-3 py-1 rounded-full border border-white/20 hover:border-blue-400/60 hover:text-blue-400 transition-all text-[10px]" style={{background: presenterMode ? 'rgba(96,165,250,0.15)' : 'transparent', color: presenterMode ? '#60a5fa' : ''}}>{presenterMode ? '● LIVE' : 'P · PRESENT'}</span>
@@ -450,7 +531,7 @@
                     <section className="relative h-screen flex flex-col items-center justify-center overflow-hidden">
                         <img src="./image_0.png" className="absolute inset-0 w-full h-full object-cover hero-img loaded" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
-                        <div className="absolute inset-0" style={{mixBlendMode:'screen',opacity:0.3}}><ParticleCanvas /></div>
+
                         <div className="relative z-10 text-center px-4 mt-32">
                             <h2 className="text-sm md:text-xl font-bold mb-4 text-blue-400 tracking-[0.2em] text-shadow-apple uppercase">Language Meets Logic</h2>
                             <h1 className="text-6xl md:text-[7rem] font-extrabold text-white leading-tight text-shadow-apple">
@@ -461,6 +542,80 @@
                             </p>
                         </div>
                     </section>
+
+
+                    <section id="about" className="py-32 bg-black border-b border-white/5">
+                        <div className="max-w-7xl mx-auto px-6">
+                            <div className="grid md:grid-cols-2 gap-20 items-center mb-20">
+                                <div className="reveal">
+                                    <h3 className="text-blue-400 font-bold mb-4 tracking-widest uppercase text-sm">About Me</h3>
+                                    <h2 className="text-4xl md:text-5xl font-bold mb-8 text-white leading-tight">王润泽。</h2>
+                                    <div className="space-y-6 text-gray-400 text-lg font-light leading-relaxed">
+                                        <p>
+                                            北航语言科学与工程2026届本科生。用四年时间做了一件很多人觉得奇怪的事：
+                                            从语言学走向机器学习，再走向大模型。
+                                        </p>
+                                        <p>
+                                            我不是科班CS出身，这是事实。但在工信部重点实验室的研究中我发现，
+                                            <span className="text-white">语言学的特征工程思维，
+                                            恰恰能做到纯工程背景做不到的事</span>——用句法先验知识弥补小样本，
+                                            让模型的决策可追溯、可解释。
+                                        </p>
+                                        <p>
+                                            我喜欢把复杂的问题讲清楚，喜欢找到不同领域之间隐藏的连接。
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="reveal">
+                                    <img src="./image_0.png" className="w-full h-72 rounded-3xl object-cover border border-white/10 shadow-2xl" style={{objectPosition:'center 30%'}} />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 reveal">
+                                {[
+                                    {num:'3', label:'研究论文', sub:'横跨语料库·量化·ML', color:'text-blue-400'},
+                                    {num:'2', label:'国家级实验室', sub:'工信部 · 中宣部', color:'text-emerald-400'},
+                                    {num:'94%', label:'模型准确率', sub:'AI文本检测', color:'text-purple-400'},
+                                    {num:'3.4', label:'GPA', sub:'北京航空航天大学', color:'text-amber-400'},
+                                ].map((card,i) => (
+                                    <div key={i} className="glass rounded-2xl p-6 border border-white/5 text-center">
+                                        <div className={`text-4xl font-bold font-mono mb-2 ${card.color}`}>{card.num}</div>
+                                        <div className="text-white text-sm font-medium mb-1">{card.label}</div>
+                                        <div className="text-gray-600 text-xs">{card.sub}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </section>
+
+
+                    <section id="highlights" className="py-32 px-6 md:px-24 bg-black border-b border-white/5">
+                        <div className="max-w-7xl mx-auto">
+                            <h2 className="text-5xl md:text-7xl font-bold mb-16 text-gradient text-center reveal">Moments of impact.</h2>
+                            <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                                <div className="md:col-span-8 bg-black rounded-3xl overflow-hidden reveal relative group border border-white/5">
+                                    <img src="./image_2.png" className="w-full h-[500px] object-cover opacity-80 group-hover:scale-105 transition-transform duration-700" />
+                                    <div className="absolute bottom-10 left-10">
+                                        <p className="text-blue-400 font-bold text-xs tracking-widest mb-2 uppercase">Academic Excellence</p>
+                                        <h3 className="text-4xl font-bold text-white text-shadow-apple">与剑桥教授共话学术前沿</h3>
+                                    </div>
+                                </div>
+                                <div className="md:col-span-4 bg-[#111] rounded-3xl overflow-hidden reveal relative group border border-white/5 p-8 flex flex-col justify-end" style={{transitionDelay: '200ms'}}>
+                                    <img src="./image_4.png" className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:scale-110 transition-transform duration-1000" />
+                                    <div className="relative z-10">
+                                        <p className="text-orange-500 font-bold text-xs tracking-widest mb-2 uppercase">Leadership Under Pressure</p>
+                                        <h3 className="text-3xl font-bold text-white text-shadow-apple mb-3">意志与统帅力。</h3>
+                                        <ul className="text-gray-300 text-sm font-light space-y-2">
+                                            <li>● 院系篮球队队长</li>
+                                            <li>● 两届航文杯赛事总冠军</li>
+                                            <li>● 两届赛事唯一 MVP</li>
+                                            <li>● 校辩论队核心辩手</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
 
                     <section id="foundation" className="py-32 bg-black border-b border-white/5">
                         <div className="max-w-5xl mx-auto px-6">
@@ -517,62 +672,6 @@
                         </div>
                     </section>
 
-                    <section id="ecosystem" className="py-32 bg-[#0a0a0a] border-b border-white/5 relative overflow-hidden">
-                        <div className="max-w-7xl mx-auto px-6">
-                            <h2 className="text-5xl md:text-6xl font-bold mb-6 text-gradient text-center reveal">The Ecosystem.</h2>
-                            <p className="text-center text-gray-400 mb-20 reveal max-w-2xl mx-auto font-light">将鼠标悬停在图标上，查看底层的工程细节与量化战绩。</p>
-
-                            <div className="flex flex-col lg:flex-row gap-16 items-center reveal">
-                                <div className="w-full lg:w-1/2 grid grid-cols-4 md:grid-cols-5 gap-4">
-                                    {techStackData.map((tech) => (
-                                        <div
-                                            key={tech.id}
-                                            onMouseEnter={() => setActiveTech(tech)}
-                                            className={`tech-icon-wrapper flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-2xl cursor-pointer border backdrop-blur-md ${tech.id === activeTech.id ? tech.color + ' ring-2 ring-white/20' : 'bg-white/5 border-white/10 text-white/50 hover:bg-white/10'}`}
-                                        >
-                                            <span className="text-3xl md:text-4xl filter drop-shadow-lg">{tech.icon}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                                <div className="w-full lg:w-1/2 h-64">
-                                    <div className="glass p-8 rounded-3xl h-full flex flex-col justify-center relative overflow-hidden transition-all duration-300">
-                                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-bl-full -mr-8 -mt-8"></div>
-                                        <p className={`text-xs font-bold uppercase tracking-widest mb-3 ${activeTech.color.split(' ')[1]}`}>{activeTech.category}</p>
-                                        <h3 className="text-4xl font-bold text-white mb-4 flex items-center gap-3">{activeTech.name}</h3>
-                                        <p className="text-gray-300 text-lg font-light leading-relaxed">{activeTech.desc}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section id="highlights" className="py-32 px-6 md:px-24 bg-black border-b border-white/5">
-                        <div className="max-w-7xl mx-auto">
-                            <h2 className="text-5xl md:text-7xl font-bold mb-16 text-gradient text-center reveal">Moments of impact.</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                                <div className="md:col-span-8 bg-black rounded-3xl overflow-hidden reveal relative group border border-white/5">
-                                    <img src="./image_2.png" className="w-full h-[500px] object-cover opacity-80 group-hover:scale-105 transition-transform duration-700" />
-                                    <div className="absolute bottom-10 left-10">
-                                        <p className="text-blue-400 font-bold text-xs tracking-widest mb-2 uppercase">Academic Excellence</p>
-                                        <h3 className="text-4xl font-bold text-white text-shadow-apple">与剑桥教授共话学术前沿</h3>
-                                    </div>
-                                </div>
-                                <div className="md:col-span-4 bg-[#111] rounded-3xl overflow-hidden reveal relative group border border-white/5 p-8 flex flex-col justify-end" style={{transitionDelay: '200ms'}}>
-                                    <img src="./image_4.png" className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:scale-110 transition-transform duration-1000" />
-                                    <div className="relative z-10">
-                                        <p className="text-orange-500 font-bold text-xs tracking-widest mb-2 uppercase">Leadership Under Pressure</p>
-                                        <h3 className="text-3xl font-bold text-white text-shadow-apple mb-3">意志与统帅力。</h3>
-                                        <ul className="text-gray-300 text-sm font-light space-y-2">
-                                            <li>● 院系篮球队队长</li>
-                                            <li>● 两届航文杯赛事总冠军</li>
-                                            <li>● 两届赛事唯一 MVP</li>
-                                            <li>● 校辩论队核心辩手</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
 
                     <section id="research" className="py-32 bg-[#0a0a0a] relative">
                         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-20 items-center mb-32 border-b border-white/5 pb-32">
@@ -681,8 +780,41 @@
                         </div>
                     </section>
 
-                    <section id="action" className="py-32 bg-black border-t border-white/10">
-                        <div className="max-w-6xl mx-auto px-6">
+
+                    <section id="ecosystem" className="py-32 bg-[#0a0a0a] border-b border-white/5 relative overflow-hidden">
+                        <div className="max-w-7xl mx-auto px-6">
+                            <h2 className="text-5xl md:text-6xl font-bold mb-6 text-gradient text-center reveal">The Ecosystem.</h2>
+                            <p className="text-center text-gray-400 mb-20 reveal max-w-2xl mx-auto font-light">将鼠标悬停在图标上，查看底层的工程细节与量化战绩。</p>
+
+                            <div className="flex flex-col lg:flex-row gap-16 items-center reveal">
+                                <div className="w-full lg:w-1/2 grid grid-cols-4 md:grid-cols-5 gap-4">
+                                    {techStackData.map((tech) => (
+                                        <div
+                                            key={tech.id}
+                                            onMouseEnter={() => setActiveTech(tech)}
+                                            className={`tech-icon-wrapper flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-2xl cursor-pointer border backdrop-blur-md ${tech.id === activeTech.id ? tech.color + ' ring-2 ring-white/20' : 'bg-white/5 border-white/10 text-white/50 hover:bg-white/10'}`}
+                                        >
+                                            <span className="text-3xl md:text-4xl filter drop-shadow-lg">{tech.icon}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="w-full lg:w-1/2 h-64">
+                                    <div className="glass p-8 rounded-3xl h-full flex flex-col justify-center relative overflow-hidden transition-all duration-300">
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-bl-full -mr-8 -mt-8"></div>
+                                        <p className={`text-xs font-bold uppercase tracking-widest mb-3 ${activeTech.color.split(' ')[1]}`}>{activeTech.category}</p>
+                                        <h3 className="text-4xl font-bold text-white mb-4 flex items-center gap-3">{activeTech.name}</h3>
+                                        <p className="text-gray-300 text-lg font-light leading-relaxed">{activeTech.desc}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+
+
+                    <section id="action" className="py-32 bg-black border-t border-white/10 relative overflow-hidden">
+                        <div style={{position:'absolute',inset:0,zIndex:0,opacity:0.8}}><ParticleCanvas /></div>
+                        <div className="max-w-6xl mx-auto px-6 relative" style={{zIndex:1}}>
                             <div className="text-center reveal mb-10">
                                 <h3 className="text-blue-400 font-bold mb-3 tracking-widest uppercase text-sm">Live NLP Demo</h3>
                                 <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">实时句法复杂度分析。</h2>
@@ -709,6 +841,7 @@
                             </div>
                         </div>
                     </section>
+
 
                     <section id="aimlab" className="py-32 bg-[#0a0a0a] border-t border-white/10">
                         <div className="max-w-7xl mx-auto px-6">
@@ -790,6 +923,7 @@
 
                         </div>
                     </section>
+
 
                     <section id="summary" className="py-32 bg-[#050505] reveal border-t border-white/5">
                         <div className="max-w-7xl mx-auto px-6 text-center">
