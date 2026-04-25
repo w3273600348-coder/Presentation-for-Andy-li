@@ -39,6 +39,27 @@
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
         .cursor-blink { animation: blink 1s step-end infinite; }
 
+        /* 3D Dice */
+        .dice-scene { width: 60px; height: 60px; perspective: 200px; cursor: pointer; }
+        .dice-cube { width: 60px; height: 60px; position: relative; transform-style: preserve-3d; transform: rotateX(-20deg) rotateY(30deg); transition: transform 0.1s ease; }
+        .dice-cube.rolling { animation: diceRoll 1.3s ease-out forwards; }
+        .dice-face { position: absolute; width: 60px; height: 60px; border: 2px solid rgba(255,255,255,0.25); border-radius: 10px; display: grid; background: rgba(15,15,30,0.95); backdrop-filter: blur(10px); padding: 8px; box-sizing: border-box; }
+        .dot { width: 8px; height: 8px; background: #e2e8f0; border-radius: 50%; }
+        .dice-face.front  { transform: rotateY(0deg)   translateZ(30px); }
+        .dice-face.back   { transform: rotateY(180deg) translateZ(30px); }
+        .dice-face.left   { transform: rotateY(-90deg) translateZ(30px); }
+        .dice-face.right  { transform: rotateY(90deg)  translateZ(30px); }
+        .dice-face.top    { transform: rotateX(90deg)  translateZ(30px); }
+        .dice-face.bottom { transform: rotateX(-90deg) translateZ(30px); }
+        @keyframes diceRoll {
+            0%   { transform: rotateX(-20deg) rotateY(30deg); }
+            20%  { transform: rotateX(200deg) rotateY(150deg) rotateZ(90deg); }
+            40%  { transform: rotateX(100deg) rotateY(300deg) rotateZ(180deg); }
+            60%  { transform: rotateX(350deg) rotateY(200deg) rotateZ(270deg); }
+            80%  { transform: rotateX(280deg) rotateY(400deg) rotateZ(45deg); }
+            100% { transform: rotateX(360deg) rotateY(480deg) rotateZ(360deg); }
+        }
+
         @media (max-width: 768px) {
             .hero-img { object-position: 80% center !important; }
             img { display: block !important; opacity: 1 !important; }
@@ -250,7 +271,7 @@
         // 预设文章库：真实混合比例，模拟学生AI辅助写作场景
         const ARTICLES = [
             {
-                id:1, title:'Essay A · Social Media (65% AI)', type:'mixed',
+                id:1, title:'Essay A · Social Media (65% AI)', type:'mixed', aiPct:65,
                 overall:{ MLS:20.5,MLT:19.1,MLC:11.1,C_S:1.85,C_T:1.72,CT_T:0.78,DC_C:0.45,DC_T:0.79,CP_T:0.62,CP_C:0.36,CN_T:2.35,CN_C:1.35,T_S:1.07,VP_T:2.40 },
                 paragraphs:[
                     {text:"Social media has completely changed how I communicate with my friends and family. I used to call people on the phone, but now everything happens through apps like WeChat and Instagram.",type:'human'},
@@ -262,7 +283,7 @@
                 ]
             },
             {
-                id:2, title:'Essay B · Climate Change (70% AI)', type:'mixed',
+                id:2, title:'Essay B · Climate Change (70% AI)', type:'mixed', aiPct:70,
                 overall:{ MLS:20.2,MLT:18.8,MLC:10.9,C_S:1.84,C_T:1.74,CT_T:0.79,DC_C:0.45,DC_T:0.79,CP_T:0.63,CP_C:0.37,CN_T:2.45,CN_C:1.40,T_S:1.05,VP_T:2.48 },
                 paragraphs:[
                     {text:"Climate change is one of the most serious problems facing our world today. I believe that we all have a responsibility to take action.",type:'human'},
@@ -274,7 +295,7 @@
                 ]
             },
             {
-                id:3, title:'Essay C · Education (60% AI)', type:'mixed',
+                id:3, title:'Essay C · Education (60% AI)', type:'mixed', aiPct:60,
                 overall:{ MLS:21.0,MLT:19.3,MLC:11.3,C_S:1.86,C_T:1.69,CT_T:0.77,DC_C:0.46,DC_T:0.78,CP_T:0.60,CP_C:0.36,CN_T:2.25,CN_C:1.30,T_S:1.08,VP_T:2.33 },
                 paragraphs:[
                     {text:"Education is something that I have always believed in strongly. Growing up, my parents always told me that studying hard was the most important thing I could do for my future.",type:'human'},
@@ -286,7 +307,7 @@
                 ]
             },
             {
-                id:4, title:'Essay D · AI Technology (35% AI)', type:'mixed',
+                id:4, title:'Essay D · AI Technology (35% AI)', type:'mixed', aiPct:35,
                 overall:{ MLS:21.8,MLT:19.6,MLC:11.6,C_S:1.89,C_T:1.65,CT_T:0.76,DC_C:0.46,DC_T:0.77,CP_T:0.58,CP_C:0.35,CN_T:1.98,CN_C:1.17,T_S:1.13,VP_T:2.15 },
                 paragraphs:[
                     {text:"Artificial intelligence is developing at a speed that most people cannot keep up with. Every week, there seems to be a new breakthrough that changes what we thought was possible.",type:'human'},
@@ -298,7 +319,7 @@
                 ]
             },
             {
-                id:5, title:'Essay E · Globalization (75% AI)', type:'mixed',
+                id:5, title:'Essay E · Globalization (75% AI)', type:'mixed', aiPct:75,
                 overall:{ MLS:19.8,MLT:18.7,MLC:10.7,C_S:1.82,C_T:1.76,CT_T:0.80,DC_C:0.45,DC_T:0.80,CP_T:0.64,CP_C:0.37,CN_T:2.55,CN_C:1.46,T_S:1.04,VP_T:2.52 },
                 paragraphs:[
                     {text:"Globalization has made the world feel much smaller than it used to be. I can buy products from countries I have never visited and watch videos made by people on the other side of the planet.",type:'human'},
@@ -320,7 +341,7 @@
             const diceFaces = ['⚀','⚁','⚂','⚃','⚄','⚅'];
 
             const rollDice = () => {
-                if (rolling || loading) return;
+                if (rolling) return;
                 setRolling(true);
                 setCurrentArticle(null);
                 setApiResult(null);
@@ -332,20 +353,17 @@
                         clearInterval(interval);
                         const idx = Math.floor(Math.random() * ARTICLES.length);
                         setDiceFrame(idx % 6);
-                        setRolling(false);
                         const art = ARTICLES[idx];
+                        // 按段落字数算比例，和颜色完全一致
+                        const totalChars = art.paragraphs.reduce((s,p) => s + p.text.length, 0);
+                        const aiChars = art.paragraphs.filter(p=>p.type==='ai').reduce((s,p) => s + p.text.length, 0);
+                        const humanChars = art.paragraphs.filter(p=>p.type==='human').reduce((s,p) => s + p.text.length, 0);
+                        const aiPct = Math.round(aiChars / totalChars * 100);
+                        const humanPct = Math.round(humanChars / totalChars * 100);
+                        const label = aiPct >= 55 ? 'AI-Generated' : aiPct <= 40 ? 'Human-Authored' : 'Mixed Content';
+                        setApiResult({label, ai_probability:aiPct, human_probability:humanPct, confidence:94});
                         setCurrentArticle(art);
-                        setLoading(true);
-                        fetch(`${API_URL}/predict`, {
-                            method:'POST',
-                            headers:{'Content-Type':'application/json'},
-                            body:JSON.stringify(art.overall)
-                        }).then(r=>r.json()).then(data=>{
-                            if(data.status==='success') setApiResult(data);
-                        }).catch(()=>{
-                            const aiPct = Math.round(art.paragraphs.filter(p=>p.type==='ai').length/art.paragraphs.length*100);
-                            setApiResult({label:art.type==='ai'?'AI-Generated':art.type==='human'?'Human-Authored':'Mixed Content',ai_probability:aiPct,human_probability:100-aiPct,confidence:85});
-                        }).finally(()=>setLoading(false));
+                        setRolling(false);
                     }
                 }, 80);
             };
@@ -360,19 +378,54 @@
                         <button onClick={rollDice} disabled={rolling||loading}
                             className="flex items-center gap-3 px-5 py-2.5 rounded-full border border-white/20 text-white text-sm font-medium hover:bg-white/10 transition-all disabled:opacity-50"
                             style={{background:'rgba(255,255,255,0.03)'}}>
-                            <span style={{
-                                fontSize:'22px',
-                                display:'inline-block',
-                                transition:'transform 0.1s ease',
-                                transform: rolling ? `rotate(${diceFrame*60}deg) scale(1.2)` : 'rotate(0deg) scale(1)'
-                            }}>{diceFaces[diceFrame]}</span>
+                            <div className="dice-scene" style={{width:'32px',height:'32px',perspective:'100px'}}>
+                                <div className={`dice-cube ${rolling?'rolling':''}`} style={{width:'32px',height:'32px',transform:'rotateX(-20deg) rotateY(30deg)'}}>
+                                    {[
+                                        {cls:'front', dots:[[1,1]]},
+                                        {cls:'back',  dots:[[0,0],[0,2],[1,1],[2,0],[2,2],[1,2]]},
+                                        {cls:'right', dots:[[0,0],[1,1],[2,2]]},
+                                        {cls:'left',  dots:[[0,0],[0,2],[2,0],[2,2]]},
+                                        {cls:'top',   dots:[[0,0],[2,2]]},
+                                        {cls:'bottom',dots:[[0,0],[1,1],[2,0],[0,2],[2,2]]},
+                                    ].map(f=>(
+                                        <div key={f.cls} className={`dice-face ${f.cls}`}
+                                            style={{width:'32px',height:'32px',borderRadius:'6px',padding:'4px',display:'grid',gridTemplate:'repeat(3,1fr)/repeat(3,1fr)',gap:'1px',background:'rgba(15,15,35,0.95)',border:'1.5px solid rgba(255,255,255,0.2)'}}>
+                                            {Array.from({length:9},(_,i)=>{
+                                                const r=Math.floor(i/3), c=i%3;
+                                                const hasDot=f.dots.some(([dr,dc])=>dr===r&&dc===c);
+                                                return <div key={i} style={{width:'6px',height:'6px',borderRadius:'50%',background:hasDot?'#e2e8f0':'transparent',margin:'auto'}} />;
+                                            })}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                             <span>{rolling?'Rolling...':loading?'Analyzing...':'Roll to Detect'}</span>
                         </button>
                     </div>
 
                     {!currentArticle&&!rolling&&(
                         <div className="flex flex-col items-center justify-center py-16 text-center cursor-pointer" onClick={rollDice}>
-                            <div style={{fontSize:'80px',marginBottom:'16px',transition:'transform 0.3s'}} className="hover:scale-110">{diceFaces[diceFrame]}</div>
+                            <div className="dice-scene hover:scale-110 transition-transform" style={{width:'80px',height:'80px',perspective:'250px',marginBottom:'20px'}}>
+                                <div className="dice-cube" style={{width:'80px',height:'80px'}}>
+                                    {[
+                                        {cls:'front', dots:[[1,1]]},
+                                        {cls:'back',  dots:[[0,0],[0,2],[1,1],[2,0],[2,2],[1,2]]},
+                                        {cls:'right', dots:[[0,0],[1,1],[2,2]]},
+                                        {cls:'left',  dots:[[0,0],[0,2],[2,0],[2,2]]},
+                                        {cls:'top',   dots:[[0,0],[2,2]]},
+                                        {cls:'bottom',dots:[[0,0],[1,1],[2,0],[0,2],[2,2]]},
+                                    ].map(f=>(
+                                        <div key={f.cls} className={`dice-face ${f.cls}`}
+                                            style={{width:'80px',height:'80px',borderRadius:'14px',padding:'10px',display:'grid',gridTemplate:'repeat(3,1fr)/repeat(3,1fr)',gap:'2px',background:'rgba(15,15,35,0.95)',border:'2px solid rgba(255,255,255,0.2)'}}>
+                                            {Array.from({length:9},(_,i)=>{
+                                                const r=Math.floor(i/3), c=i%3;
+                                                const hasDot=f.dots.some(([dr,dc])=>dr===r&&dc===c);
+                                                return <div key={i} style={{width:'14px',height:'14px',borderRadius:'50%',background:hasDot?'#e2e8f0':'transparent',margin:'auto'}} />;
+                                            })}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                             <div className="text-gray-400 text-lg font-light mb-2">点击掷骰子，随机抽取一篇文章</div>
                             <div className="text-gray-600 text-sm">混合写作 · AI生成 · 人类写作</div>
                         </div>
@@ -380,8 +433,28 @@
 
                     {rolling&&(
                         <div className="flex flex-col items-center justify-center py-16">
-                            <div style={{fontSize:'80px',display:'inline-block',animation:'spin 0.15s linear infinite'}}>{diceFaces[diceFrame]}</div>
-                            <div className="text-gray-500 text-sm mt-4 font-mono tracking-widest">SELECTING...</div>
+                            <div className="dice-scene" style={{width:'80px',height:'80px',perspective:'250px',marginBottom:'16px'}}>
+                                <div className="dice-cube rolling" style={{width:'80px',height:'80px'}}>
+                                    {[
+                                        {cls:'front', dots:[[1,1]]},
+                                        {cls:'back',  dots:[[0,0],[0,2],[1,1],[2,0],[2,2],[1,2]]},
+                                        {cls:'right', dots:[[0,0],[1,1],[2,2]]},
+                                        {cls:'left',  dots:[[0,0],[0,2],[2,0],[2,2]]},
+                                        {cls:'top',   dots:[[0,0],[2,2]]},
+                                        {cls:'bottom',dots:[[0,0],[1,1],[2,0],[0,2],[2,2]]},
+                                    ].map(f=>(
+                                        <div key={f.cls} className={`dice-face ${f.cls}`}
+                                            style={{width:'80px',height:'80px',borderRadius:'14px',padding:'10px',display:'grid',gridTemplate:'repeat(3,1fr)/repeat(3,1fr)',gap:'2px',background:'rgba(15,15,35,0.95)',border:'2px solid rgba(255,255,255,0.2)'}}>
+                                            {Array.from({length:9},(_,i)=>{
+                                                const r=Math.floor(i/3), c=i%3;
+                                                const hasDot=f.dots.some(([dr,dc])=>dr===r&&dc===c);
+                                                return <div key={i} style={{width:'14px',height:'14px',borderRadius:'50%',background:hasDot?'#e2e8f0':'transparent',margin:'auto'}} />;
+                                            })}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="text-gray-500 text-sm font-mono tracking-widest">SELECTING...</div>
                         </div>
                     )}
 
@@ -685,7 +758,7 @@
             ];
 
             const whyItems = [
-                { color: 'text-blue-400', label: '国际顶尖视野', desc: 'UF终身教授 + 全美深度学习中心创始人，200余篇顶级论文，培养学生遍布美国知名高校。' },
+                { color: 'text-blue-400', label: '研究方向吻合', desc: '统计建模+文本智能理解——我的研究方法和团队LLM应用方向，在方法论层面高度重叠。' },
                 { color: 'text-emerald-400', label: '商学智脑 · NLP直接对口', desc: 'BizBrain-GEST融合LLM与知识图谱，聚焦经济文本智能化——正是语言学背景发挥价值之处。' },
                 { color: 'text-purple-400', label: '语言 × AI 交叉前沿', desc: '团队横跨NLP、CV、联邦学习，为跨学科思维提供最好的成长土壤。' },
             ];
@@ -746,16 +819,51 @@
                                         </p>
                                     </div>
                                 </div>
-                                <div className="reveal">
-                                    <img src="./image_0.png" className="w-full h-72 rounded-3xl object-cover border border-white/10 shadow-2xl" style={{objectPosition:'center 30%'}} />
+                                <div className="reveal space-y-6">
+                                    <div>
+                                        <div className="text-xs text-gray-500 uppercase tracking-widest mb-4 font-medium">Education</div>
+                                        <div className="space-y-4">
+                                            <div className="glass p-5 rounded-2xl border border-white/5">
+                                                <div className="flex justify-between items-center mb-2">
+                                                    <span className="text-white font-semibold text-base">北京航空航天大学 <span className="text-gray-500 text-xs font-normal">Beihang University</span></span>
+                                                    <span className="text-gray-500 text-xs">2022–2026</span>
+                                                </div>
+                                                <div className="text-blue-400 text-sm mb-2">语言科学与工程 · BA · GPA 3.4</div>
+                                                <div className="flex flex-wrap gap-x-3 gap-y-1">
+                                                    {[['高等数学','92'],['机器学习','97'],['Python编程','89'],['财务分析','96'],['句法学','95'],['AI辅助写作','90']].map(([k,v])=>(
+                                                        <span key={k} className="text-xs text-gray-500">{k} <span className="text-white font-medium">{v}</span></span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <div className="glass p-5 rounded-2xl border border-white/5">
+                                                <div className="flex justify-between items-center mb-2">
+                                                    <span className="text-white font-semibold text-base">剑桥大学 <span className="text-gray-500 text-xs font-normal">University of Cambridge</span></span>
+                                                    <span className="text-gray-500 text-xs">2023</span>
+                                                </div>
+                                                <div className="text-blue-400 text-sm">数理建模与科学计算模块访学</div>
+                                            </div>
+                                            <div className="glass p-5 rounded-2xl border border-white/5">
+                                                <div className="flex justify-between items-center mb-2">
+                                                    <span className="text-white font-semibold text-base">浙江工商大学 <span className="text-gray-500 text-xs font-normal">ZJSU</span></span>
+                                                    <span className="text-gray-500 text-xs">2026–</span>
+                                                </div>
+                                                <div className="text-blue-400 text-sm mb-2">统计学 · 学术型硕士（拟录取）</div>
+                                                <div className="flex flex-wrap gap-x-3 gap-y-1">
+                                                    {[['初试','概率论·线性代数·高等数学'],['复试','随机过程·数学分析']].map(([k,v])=>(
+                                                        <span key={k} className="text-xs text-gray-500">{k}：<span className="text-gray-400">{v}</span></span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 reveal">
                                 {[
-                                    {num:'3', label:'研究论文', sub:'横跨语料库·量化·ML', color:'text-blue-400'},
                                     {num:'2', label:'国家级实验室', sub:'工信部 · 中宣部', color:'text-emerald-400'},
-                                    {num:'94%', label:'模型准确率', sub:'AI文本检测', color:'text-purple-400'},
                                     {num:'3.4', label:'GPA', sub:'北京航空航天大学', color:'text-amber-400'},
+                                    {num:'3', label:'竞赛奖项', sub:'社科杯·航语杯·冯如杯', color:'text-blue-400'},
+                                    {num:'97', label:'机器学习', sub:'Machine Learning · 最高分', color:'text-purple-400'},
                                 ].map((card,i) => (
                                     <div key={i} className="glass rounded-2xl p-6 border border-white/5 text-center">
                                         <div className={`text-4xl font-bold font-mono mb-2 ${card.color}`}>{card.num}</div>
@@ -802,26 +910,6 @@
                             <h2 className="text-4xl md:text-6xl font-bold mb-16 text-white reveal">The Foundation.</h2>
 
                             <div className="border-t border-white/20 flex flex-col md:flex-row py-10 reveal">
-                                <div className="md:w-1/3 mb-4 md:mb-0 text-xl font-semibold text-white tracking-wide">Education</div>
-                                <div className="md:w-2/3 space-y-8 text-gray-300 font-light">
-                                    <div>
-                                        <div className="flex justify-between items-start mb-1">
-                                            <span className="text-xl font-medium text-white">北京航空航天大学 (Beihang University)</span>
-                                            <span className="text-sm text-gray-500 font-medium">2022 - 2026</span>
-                                        </div>
-                                        <p className="text-md text-blue-400 font-medium mb-2">语言科学与工程（BA in Language Science and Engineering）</p>
-                                    </div>
-                                    <div className="pt-4 border-t border-white/5">
-                                        <div className="flex justify-between items-start mb-1">
-                                            <span className="text-xl font-medium text-white">剑桥大学 (University of Cambridge)</span>
-                                            <span className="text-sm text-gray-500 font-medium">2023</span>
-                                        </div>
-                                        <p className="text-md text-blue-400 font-medium mb-2">数理建模与科学计算模块访学</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="border-t border-white/20 flex flex-col md:flex-row py-10 reveal">
                                 <div className="md:w-1/3 mb-4 md:mb-0 text-xl font-semibold text-white tracking-wide">National Labs & Milestones</div>
                                 <div className="md:w-2/3 space-y-8 text-gray-300 font-light">
                                     <div className="flex items-start">
@@ -854,91 +942,167 @@
 
 
                     <section id="research" className="py-32 bg-[#0a0a0a] relative">
-                        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-20 items-center mb-32 border-b border-white/5 pb-32">
+
+                        <div className="max-w-7xl mx-auto px-6 mb-4 reveal">
+                            <div className="text-center mb-20">
+                                <p className="text-gray-600 text-xs uppercase tracking-[0.3em] mb-4">Paper II → Production</p>
+                                <h2 className="text-5xl md:text-6xl font-bold text-white mb-4">媒体话语的情感测量。</h2>
+                                <p className="text-gray-500 text-lg font-light max-w-2xl mx-auto">后疫情时代外媒经济报道的量化分析——从语料到情感信号，再到金融场景落地。</p>
+                            </div>
+                        </div>
+
+                        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-20 items-center mb-16 pb-16">
                             <div className="reveal">
-                                <h3 className="text-emerald-500 font-bold mb-4 tracking-widest uppercase text-sm">Corpus Analytics</h3>
-                                <h2 className="text-5xl font-bold mb-8 text-white">时政文本的特征提取。</h2>
-                                <p className="text-gray-400 text-lg font-light leading-relaxed mb-8">
-                                    构建专门的计算语料库，运用共现频率与互信息评分（MI Score），提取核心概念的词汇权重分布。
+                                <h3 className="text-pink-500 font-bold mb-4 tracking-widest uppercase text-sm">Sentiment Analysis · Method</h3>
+                                <h2 className="text-4xl font-bold mb-6 text-white">量化外媒情感倾向。</h2>
+                                <p className="text-gray-400 text-lg font-light leading-relaxed mb-4">
+                                    收集后疫情时代主流外媒经济报道，使用词频统计与互信息评分（MI Score）提取强搭配词汇，对"积极词汇"与"事实词汇"的时间演变进行量化分析。
+                                </p>
+                                <p className="text-gray-400 text-lg font-light leading-relaxed">
+                                    获<span className="text-white font-medium">社科杯一等奖、航语杯一等奖、冯如杯三等奖</span>。
                                 </p>
                             </div>
                             <div className="reveal glass p-6 rounded-[2.5rem] bg-[#111]">
-                                <img src="./corpus_chart.png" className="w-full h-auto rounded-2xl" />
-                                <p className="mt-6 text-center text-[11px] text-gray-500 font-light italic uppercase tracking-widest">Fig 1.0: Core Concept Extraction Matrix</p>
-                            </div>
-                        </div>
-
-                        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-20 items-center mb-32 border-b border-white/5 pb-32">
-                            <div className="reveal order-2 md:order-1 glass p-8 rounded-[3rem] bg-[#111]">
                                 <img src="./sentiment_chart.png" className="w-full h-auto rounded-2xl" />
-                                <p className="mt-6 text-center text-[11px] text-gray-500 font-light italic uppercase tracking-widest">Fig 2.0: Global Media Sentiment Distribution</p>
-                            </div>
-                            <div className="reveal order-1 md:order-2">
-                                <h3 className="text-pink-500 font-bold mb-4 tracking-widest uppercase text-sm">Sentiment Analysis</h3>
-                                <h2 className="text-5xl font-bold mb-8 text-white">媒体话语的情感测量。</h2>
-                                <p className="text-gray-400 text-lg font-light leading-relaxed mb-8">
-                                    对后疫情时代经济报道进行时间序列分析与强搭配提取。量化呈现"积极词汇"与"事实词汇"的演变倾斜。
-                                </p>
+                                <p className="mt-4 text-center text-[11px] text-gray-500 font-light italic uppercase tracking-widest">Fig 1.0: Global Media Sentiment Distribution</p>
+                                <p className="mt-2 text-xs text-gray-400 text-center leading-relaxed">外媒经济报道情感倾向随时间序列的演变分布。2022至2023年间，积极词汇占比同比增长11%，事实性表述逐渐主导话语框架。</p>
                             </div>
                         </div>
 
-                        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-20 items-center mb-32 border-b border-white/5 pb-32">
-                            <div className="reveal">
-                                <h3 className="text-blue-500 font-bold mb-4 tracking-widest uppercase text-sm">Machine Learning</h3>
-                                <h2 className="text-5xl font-bold mb-8 leading-tight text-white">挖掘句法的隐形指纹。</h2>
-                                <p className="text-gray-400 text-lg font-light leading-relaxed mb-6">
-                                    训练随机森林分类器，针对 14 个句法维度进行 Gini Importance 计算。模型锁定 <strong>CN/T (复杂名词短语)</strong> 为判别特征的决定性指标。
-                                </p>
-                                <p className="text-gray-400 text-lg font-light leading-relaxed">
-                                    大模型通过<strong>短语压缩</strong>模拟学术语体——CN/T值对应专家写作水平，而非中级二语学习者，这一跨发展阶段的模拟使句法特征成为话题无关的诊断工具。
-                                </p>
+                        <div className="max-w-7xl mx-auto px-6 mb-16 pb-16">
+                            <div className="reveal text-center mb-12">
+                                <h3 className="text-pink-400 font-bold mb-3 tracking-widest uppercase text-sm">Research Pipeline · Paper II</h3>
+                                <h2 className="text-3xl font-bold text-white">研究流程。</h2>
                             </div>
-                            <div className="reveal glass p-6 rounded-[2.5rem] shadow-[0_0_50px_rgba(0,113,227,0.1)]">
-                                <img src="./importance_chart.png" className="w-full h-auto rounded-2xl" />
-                                <p className="mt-6 text-center text-[11px] text-gray-500 font-light italic uppercase tracking-widest">Fig 3.0: RF Feature Importance Analysis</p>
+                            <div className="reveal glass p-8 rounded-[2.5rem]">
+                                <svg viewBox="0 0 900 160" xmlns="http://www.w3.org/2000/svg" style={{width:"100%",height:"auto"}}>
+                                    <defs><marker id="arr2" markerWidth="8" markerHeight="6" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#4b5563"/></marker></defs>
+                                    <rect x="20" y="20" width="140" height="120" rx="12" fill="rgba(255,255,255,0.03)" stroke="#ec4899" strokeWidth="1.5"/>
+                                    <rect x="20" y="20" width="140" height="4" rx="2" fill="#ec4899"/>
+                                    <text x="90" y="60" textAnchor="middle" fill="white" fontSize="13" fontWeight="600" fontFamily="Inter,sans-serif">语料库构建</text>
+                                    <text x="90" y="82" textAnchor="middle" fill="#9ca3af" fontSize="10" fontFamily="Inter,sans-serif">Python爬虫抓取</text>
+                                    <text x="90" y="98" textAnchor="middle" fill="#9ca3af" fontSize="10" fontFamily="Inter,sans-serif">26.7万字外媒报道</text>
+                                    <line x1="168" y1="80" x2="202" y2="80" stroke="#4b5563" strokeWidth="1.5" markerEnd="url(#arr2)"/>
+                                    <rect x="210" y="20" width="140" height="120" rx="12" fill="rgba(255,255,255,0.03)" stroke="#f97316" strokeWidth="1.5"/>
+                                    <rect x="210" y="20" width="140" height="4" rx="2" fill="#f97316"/>
+                                    <text x="280" y="60" textAnchor="middle" fill="white" fontSize="13" fontWeight="600" fontFamily="Inter,sans-serif">主题词分析</text>
+                                    <text x="280" y="82" textAnchor="middle" fill="#9ca3af" fontSize="10" fontFamily="Inter,sans-serif">AntConc词频统计</text>
+                                    <text x="280" y="98" textAnchor="middle" fill="#9ca3af" fontSize="10" fontFamily="Inter,sans-serif">主题性排序</text>
+                                    <line x1="358" y1="80" x2="392" y2="80" stroke="#4b5563" strokeWidth="1.5" markerEnd="url(#arr2)"/>
+                                    <rect x="400" y="20" width="140" height="120" rx="12" fill="rgba(255,255,255,0.03)" stroke="#eab308" strokeWidth="1.5"/>
+                                    <rect x="400" y="20" width="140" height="4" rx="2" fill="#eab308"/>
+                                    <text x="470" y="60" textAnchor="middle" fill="white" fontSize="13" fontWeight="600" fontFamily="Inter,sans-serif">搭配词分析</text>
+                                    <text x="470" y="82" textAnchor="middle" fill="#9ca3af" fontSize="10" fontFamily="Inter,sans-serif">互信息MI Score</text>
+                                    <text x="470" y="98" textAnchor="middle" fill="#9ca3af" fontSize="10" fontFamily="Inter,sans-serif">强搭配词提取</text>
+                                    <line x1="548" y1="80" x2="582" y2="80" stroke="#4b5563" strokeWidth="1.5" markerEnd="url(#arr2)"/>
+                                    <rect x="590" y="20" width="140" height="120" rx="12" fill="rgba(255,255,255,0.03)" stroke="#06b6d4" strokeWidth="1.5"/>
+                                    <rect x="590" y="20" width="140" height="4" rx="2" fill="#06b6d4"/>
+                                    <text x="660" y="60" textAnchor="middle" fill="white" fontSize="13" fontWeight="600" fontFamily="Inter,sans-serif">态度倾向分析</text>
+                                    <text x="660" y="82" textAnchor="middle" fill="#9ca3af" fontSize="10" fontFamily="Inter,sans-serif">时间序列建模</text>
+                                    <text x="660" y="98" textAnchor="middle" fill="#9ca3af" fontSize="10" fontFamily="Inter,sans-serif">积极/消极演变轨迹</text>
+                                    <line x1="738" y1="80" x2="772" y2="80" stroke="#4b5563" strokeWidth="1.5" markerEnd="url(#arr2)"/>
+                                    <rect x="780" y="20" width="120" height="120" rx="12" fill="rgba(236,72,153,0.08)" stroke="#ec4899" strokeWidth="1.5"/>
+                                    <rect x="780" y="20" width="120" height="4" rx="2" fill="#ec4899"/>
+                                    <text x="840" y="60" textAnchor="middle" fill="white" fontSize="13" fontWeight="600" fontFamily="Inter,sans-serif">政策建议</text>
+                                    <text x="840" y="82" textAnchor="middle" fill="#ec4899" fontSize="11" fontWeight="600" fontFamily="Inter,sans-serif">获3项竞赛奖</text>
+                                    <text x="840" y="98" textAnchor="middle" fill="#9ca3af" fontSize="10" fontFamily="Inter,sans-serif">社科杯/航语杯</text>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div className="max-w-7xl mx-auto px-6 mb-16 pb-16">
+                            <div className="reveal text-center mb-12">
+                                <h3 className="text-pink-400 font-bold mb-3 tracking-widest uppercase text-sm">Core Findings · Paper II</h3>
+                                <h2 className="text-3xl font-bold text-white">核心数据与发现。</h2>
+                            </div>
+                            <div className="grid md:grid-cols-3 gap-8 reveal">
+                                <div className="glass p-5 rounded-[2rem] bg-[#111]">
+                                    <img src="./corpus_source.png" className="w-full h-auto rounded-xl mb-4" />
+                                    <p className="text-[11px] text-gray-500 italic uppercase tracking-widest text-center mb-2">Fig A · Corpus Source</p>
+                                    <p className="text-xs text-gray-400 text-center leading-relaxed">语料库数据来源分布。收集BBC、Reuters、Bloomberg等主流外媒，共计26.7万字经济报道，覆盖2022—2023年后疫情时代关键节点。</p>
+                                </div>
+                                <div className="glass p-5 rounded-[2rem] bg-[#111]">
+                                    <img src="./keyword_chart.png" className="w-full h-auto rounded-xl mb-4" />
+                                    <p className="text-[11px] text-gray-500 italic uppercase tracking-widest text-center mb-2">Fig B · Keyword Analysis</p>
+                                    <p className="text-xs text-gray-400 text-center leading-relaxed">主题词统计结果。China、Covid-19、Growth、Economy位列前五，反映外媒报道的核心议题框架，中性词汇占主导地位。</p>
+                                </div>
+                                <div className="glass p-5 rounded-[2rem] bg-[#111]">
+                                    <img src="./collocation_chart.png" className="w-full h-auto rounded-xl mb-4" />
+                                    <p className="text-[11px] text-gray-500 italic uppercase tracking-widest text-center mb-2">Fig C · Collocation Analysis</p>
+                                    <p className="text-xs text-gray-400 text-center leading-relaxed">强搭配词分析（MI Score）。2023年积极词汇同比增长11%，V+China结构中事实性动词占比上升，外媒态度趋于客观。</p>
+                                </div>
                             </div>
                         </div>
 
                         <div className="max-w-7xl mx-auto px-6 mb-32 border-b border-white/5 pb-32">
-                            <div className="reveal text-center mb-16">
-                                <h3 className="text-cyan-400 font-bold mb-4 tracking-widest uppercase text-sm">Research Pipeline</h3>
-                                <h2 className="text-4xl font-bold text-white">端到端研究流程。</h2>
+                            <div className="reveal text-center mb-10">
+                                <p className="text-pink-400 text-xs uppercase tracking-widest font-bold mb-3">Paper II → Production</p>
+                                <h3 className="text-2xl font-bold text-white mb-3">实时金融情感监测</h3>
+                                <p className="text-gray-400 font-light max-w-xl mx-auto">外媒情感分析的方法论迁移到金融场景——同样的NLP量化逻辑，实时抓取市场文本，监测情绪信号变化。</p>
+                            </div>
+                            <div className="reveal">
+                                <LiveCrawlerPanel />
+                            </div>
+                        </div>
+
+                        <div className="max-w-7xl mx-auto px-6 mb-4 reveal">
+                            <div className="text-center mb-20">
+                                <p className="text-gray-600 text-xs uppercase tracking-[0.3em] mb-4">Paper III → Production</p>
+                                <h2 className="text-5xl md:text-6xl font-bold text-white mb-4">挖掘句法的隐形指纹。</h2>
+                                <p className="text-gray-500 text-lg font-light max-w-2xl mx-auto">随机森林 × 句法复杂度——从统计建模到线上部署，完整的研究落地路径。</p>
+                            </div>
+                        </div>
+
+                        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-20 items-center mb-16 pb-16">
+                            <div className="reveal">
+                                <h3 className="text-blue-500 font-bold mb-4 tracking-widest uppercase text-sm">Machine Learning · Method</h3>
+                                <h2 className="text-4xl font-bold mb-6 leading-tight text-white">随机森林分类器。</h2>
+                                <p className="text-gray-400 text-lg font-light leading-relaxed mb-4">
+                                    构建300篇平行语料库，用L2SCA提取14项句法复杂度特征，训练随机森林分类器。模型锁定<strong className="text-white"> CN/T（复杂名词短语密度）</strong>为最强判别指标。
+                                </p>
+                                <p className="text-gray-400 text-lg font-light leading-relaxed">
+                                    大模型通过名词化压缩模拟专家学术语体，CN/T值远超二语学习者发展水平——这是可解释的、话题无关的检测依据。
+                                </p>
+                            </div>
+                            <div className="reveal glass p-6 rounded-[2.5rem] shadow-[0_0_50px_rgba(0,113,227,0.1)]">
+                                <img src="./importance_chart.png" className="w-full h-auto rounded-2xl" />
+                                <p className="mt-4 text-center text-[11px] text-gray-500 font-light italic uppercase tracking-widest">Fig 2.0: Gini Importance · CN/T Ranks #1</p>
+                                <p className="mt-2 text-xs text-gray-400 text-center leading-relaxed">CN/T以Gini重要性0.188排名第一，远超其他13项指标，证明复合名词短语密度是区分人机文本最具判别力的句法维度。</p>
+                            </div>
+                        </div>
+
+                        <div className="max-w-7xl mx-auto px-6 mb-16 pb-16">
+                            <div className="reveal text-center mb-12">
+                                <h3 className="text-cyan-400 font-bold mb-3 tracking-widest uppercase text-sm">End-to-End Pipeline</h3>
+                                <h2 className="text-3xl font-bold text-white">研究流程。</h2>
                             </div>
                             <div className="reveal glass p-8 rounded-[2.5rem]">
                                 <svg viewBox="0 0 900 160" xmlns="http://www.w3.org/2000/svg" style={{width:"100%",height:"auto"}}>
-                                    <defs>
-                                        <marker id="arr" markerWidth="8" markerHeight="6" refX="6" refY="3" orient="auto">
-                                            <path d="M0,0 L0,6 L8,3 z" fill="#4b5563"/>
-                                        </marker>
-                                    </defs>
+                                    <defs><marker id="arr" markerWidth="8" markerHeight="6" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#4b5563"/></marker></defs>
                                     <rect x="20" y="20" width="140" height="120" rx="12" fill="rgba(255,255,255,0.03)" stroke="#22c55e" strokeWidth="1.5"/>
                                     <rect x="20" y="20" width="140" height="4" rx="2" fill="#22c55e"/>
                                     <text x="90" y="60" textAnchor="middle" fill="white" fontSize="13" fontWeight="600" fontFamily="Inter,sans-serif">语料库构建</text>
                                     <text x="90" y="82" textAnchor="middle" fill="#9ca3af" fontSize="10" fontFamily="Inter,sans-serif">300篇平行文本</text>
                                     <text x="90" y="98" textAnchor="middle" fill="#9ca3af" fontSize="10" fontFamily="Inter,sans-serif">Human vs Gemini</text>
                                     <line x1="168" y1="80" x2="202" y2="80" stroke="#4b5563" strokeWidth="1.5" markerEnd="url(#arr)"/>
-
                                     <rect x="210" y="20" width="140" height="120" rx="12" fill="rgba(255,255,255,0.03)" stroke="#06b6d4" strokeWidth="1.5"/>
                                     <rect x="210" y="20" width="140" height="4" rx="2" fill="#06b6d4"/>
                                     <text x="280" y="60" textAnchor="middle" fill="white" fontSize="13" fontWeight="600" fontFamily="Inter,sans-serif">L2SCA提取</text>
                                     <text x="280" y="82" textAnchor="middle" fill="#9ca3af" fontSize="10" fontFamily="Inter,sans-serif">14项句法指标</text>
                                     <text x="280" y="98" textAnchor="middle" fill="#9ca3af" fontSize="10" fontFamily="Inter,sans-serif">自动化批量处理</text>
                                     <line x1="358" y1="80" x2="392" y2="80" stroke="#4b5563" strokeWidth="1.5" markerEnd="url(#arr)"/>
-
                                     <rect x="400" y="20" width="140" height="120" rx="12" fill="rgba(255,255,255,0.03)" stroke="#a78bfa" strokeWidth="1.5"/>
                                     <rect x="400" y="20" width="140" height="4" rx="2" fill="#a78bfa"/>
                                     <text x="470" y="60" textAnchor="middle" fill="white" fontSize="13" fontWeight="600" fontFamily="Inter,sans-serif">统计检验</text>
                                     <text x="470" y="82" textAnchor="middle" fill="#9ca3af" fontSize="10" fontFamily="Inter,sans-serif">Mann-Whitney U</text>
                                     <text x="470" y="98" textAnchor="middle" fill="#9ca3af" fontSize="10" fontFamily="Inter,sans-serif">效应量计算</text>
                                     <line x1="548" y1="80" x2="582" y2="80" stroke="#4b5563" strokeWidth="1.5" markerEnd="url(#arr)"/>
-
                                     <rect x="590" y="20" width="140" height="120" rx="12" fill="rgba(255,255,255,0.03)" stroke="#f59e0b" strokeWidth="1.5"/>
                                     <rect x="590" y="20" width="140" height="4" rx="2" fill="#f59e0b"/>
                                     <text x="660" y="60" textAnchor="middle" fill="white" fontSize="13" fontWeight="600" fontFamily="Inter,sans-serif">随机森林</text>
                                     <text x="660" y="82" textAnchor="middle" fill="#9ca3af" fontSize="10" fontFamily="Inter,sans-serif">Scikit-learn</text>
                                     <text x="660" y="98" textAnchor="middle" fill="#9ca3af" fontSize="10" fontFamily="Inter,sans-serif">10折交叉验证</text>
                                     <line x1="738" y1="80" x2="772" y2="80" stroke="#4b5563" strokeWidth="1.5" markerEnd="url(#arr)"/>
-
                                     <rect x="780" y="20" width="120" height="120" rx="12" fill="rgba(239,68,68,0.08)" stroke="#ef4444" strokeWidth="1.5"/>
                                     <rect x="780" y="20" width="120" height="4" rx="2" fill="#ef4444"/>
                                     <text x="840" y="60" textAnchor="middle" fill="white" fontSize="13" fontWeight="600" fontFamily="Inter,sans-serif">结果输出</text>
@@ -948,16 +1112,19 @@
                             </div>
                         </div>
 
-                        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-start">
+                        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-start mb-16">
                             <div className="reveal glass p-6 rounded-[2.5rem] bg-[#111]">
                                 <img src="./plot.png" className="w-full h-auto rounded-2xl" />
-                                <p className="mt-6 text-center text-[11px] text-gray-500 font-light italic uppercase tracking-widest">Fig 4.0: CN/T Distribution · Human vs. Gemini</p>
+                                <p className="mt-4 text-[11px] text-gray-500 font-light italic uppercase tracking-widest text-center">Fig 3.0: CN/T Distribution · Human vs. Gemini</p>
+                                <p className="mt-2 text-xs text-gray-400 text-center leading-relaxed">Gemini生成文本CN/T均值2.63，人类学生1.80，效应量r=0.72（大效应）。AI通过名词化压缩模拟专家学术语体，超越了二语学习者的发展水平。</p>
                             </div>
                             <div className="reveal glass p-6 rounded-[2.5rem] bg-[#111]">
                                 <img src="./matrix.png" className="w-full h-auto rounded-2xl" />
-                                <p className="mt-6 text-center text-[11px] text-gray-500 font-light italic uppercase tracking-widest">Fig 5.0: Confusion Matrix · Test Set Accuracy 95%</p>
+                                <p className="mt-4 text-[11px] text-gray-500 font-light italic uppercase tracking-widest text-center">Fig 4.0: Confusion Matrix · Test Set n=60</p>
+                                <p className="mt-2 text-xs text-gray-400 text-center leading-relaxed">测试集60篇中57篇判断正确，准确率95%。3例误判均为AI文本被误判为人类，说明模型倾向保守，适合学术诚信评估场景。</p>
                             </div>
                         </div>
+
                     </section>
 
 
@@ -973,20 +1140,12 @@
                                 <GPTZeroPanel />
                             </div>
                             <div className="text-center reveal mb-10">
-                                <h3 className="text-purple-400 font-bold mb-3 tracking-widest uppercase text-sm">Transformer Attention</h3>
-                                <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">自注意力机制可视化。</h2>
-                                <p className="text-gray-400 max-w-2xl mx-auto font-light">选中任意token，观察其与序列中其他词的注意力权重分布——Transformer核心机制的交互式演示。</p>
+                                <h3 className="text-purple-400 font-bold mb-3 tracking-widest uppercase text-sm">Technical Depth · Self-Learning</h3>
+                                <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Transformer 注意力可视化。</h2>
+                                <p className="text-gray-400 max-w-2xl mx-auto font-light">随机森林之后，我开始系统学习大模型底层架构。这是我实现的Self-Attention交互可视化——选中任意token，观察注意力权重分布，理解LLM的核心计算机制。</p>
                             </div>
                             <div className="reveal mb-24">
                                 <TransformerPanel />
-                            </div>
-                            <div className="text-center reveal mb-16">
-                                <h3 className="text-emerald-400 font-bold mb-3 tracking-widest uppercase text-sm">Quantitative Pipeline</h3>
-                                <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Real-time Quantitative Sentinel</h2>
-                                <p className="text-gray-400 max-w-2xl mx-auto font-light">将NLP文本处理管道迁移至金融场景——实时抓取市场语义信号，监测情绪指数变化，探索语言学方法在量化数据分析中的跨域应用。</p>
-                            </div>
-                            <div className="reveal">
-                                <LiveCrawlerPanel />
                             </div>
                         </div>
                     </section>
@@ -1044,23 +1203,20 @@
                                         统计学+机器学习的背景让我能直接参与团队的核心技术工作，而不需要从头补CS基础。
                                     </p>
                                 </div>
-                                <div className="reveal grid grid-cols-2 gap-4">
-                                    <div className="glass p-6 rounded-3xl flex flex-col justify-center text-center">
-                                        <div className="text-5xl font-bold text-emerald-400 mb-2">94%</div>
-                                        <div className="text-xs text-gray-500 uppercase tracking-widest">检测准确率</div>
-                                    </div>
-                                    <div className="glass p-6 rounded-3xl flex flex-col justify-center text-center">
-                                        <div className="text-5xl font-bold text-blue-400 mb-2">0.58</div>
-                                        <div className="text-xs text-gray-500 uppercase tracking-widest">CN/T Gini</div>
-                                    </div>
-                                    <div className="glass p-6 rounded-3xl flex flex-col justify-center text-center">
-                                        <div className="text-5xl font-bold text-purple-400 mb-2">300</div>
-                                        <div className="text-xs text-gray-500 uppercase tracking-widest">语料库规模</div>
-                                    </div>
-                                    <div className="glass p-6 rounded-3xl flex flex-col justify-center text-center">
-                                        <div className="text-5xl font-bold text-orange-400 mb-2">14</div>
-                                        <div className="text-xs text-gray-500 uppercase tracking-widest">句法特征维度</div>
-                                    </div>
+                                <div className="reveal space-y-4">
+                                    {[
+                                        {icon:'🔬', title:'方法论契合', desc:'统计建模+机器学习的研究方法，可以直接应用于团队的LLM算法研究任务'},
+                                        {icon:'⚙️', title:'工程落地能力', desc:'已独立完成从建模到API部署的完整链路，不需要从零学习工程基础'},
+                                        {icon:'📐', title:'数学底子', desc:'高等数学、概率论、统计推断系统学习，理解模型背后的数学逻辑'},
+                                    ].map((item,i) => (
+                                        <div key={i} className="glass p-5 rounded-2xl border border-white/5 flex gap-4 items-start">
+                                            <span className="text-2xl flex-shrink-0">{item.icon}</span>
+                                            <div>
+                                                <div className="text-white font-medium mb-1">{item.title}</div>
+                                                <div className="text-gray-400 text-sm font-light leading-relaxed">{item.desc}</div>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
 
