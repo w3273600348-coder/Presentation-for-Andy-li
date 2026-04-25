@@ -54,16 +54,16 @@
         const { useState, useEffect, useRef } = React;
 
         const techStackData = [
-            { id: 'python', name: 'Python', icon: '🐍', category: 'Engineering', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30', desc: '核心编程语言。用于数据清洗、逻辑处理以及机器学习算法的代码构建。' },
-            { id: 'r', name: 'R', icon: '📊', category: 'Statistics', color: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30', desc: '统计分析主力。用于绘制复杂矩阵与特征权重分布，将语言特征转化为量化图表。' },
-            { id: 'decisiontree', name: 'Decision Tree', icon: '🌳', category: 'Machine Learning', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30', desc: '依托工信部重点实验室训练框架，利用决策树模型构建分类逻辑，解决宏观语料特征的非线性提取难题。' },
-            { id: 'wordsmith', name: 'WordSmith', icon: '📝', category: 'Linguistics', color: 'bg-teal-500/20 text-teal-400 border-teal-500/30', desc: '深度文本分析。提取高频词频与强搭配特征，量化跨文化语境下的隐藏情感倾向。' },
-            { id: 'l2sca', name: 'L2SCA', icon: '⚙️', category: 'Linguistics', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30', desc: '二语句法复杂度分析器。实现自动化批量处理，精准提取 14 个核心句法指标。' },
-            { id: 'rf', name: 'Random Forest', icon: '🌲', category: 'Machine Learning', color: 'bg-green-500/20 text-green-400 border-green-500/30', desc: '通过计算 Gini Importance，训练出能够以 94% 准确率区分人类与 AI 文本的集成模型。' },
-            { id: 'stochastic', name: 'Stochastic Process', icon: '📈', category: 'Statistics', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30', desc: '随机过程理论。深刻理解马尔可夫链，为量化时间序列打下坚实理论基础。' },
-            { id: 'llm', name: 'LLM Prompting', icon: '🤖', category: 'AI', color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30', desc: '精通提示词工程，深度挖掘生成式 AI 的底层逻辑与语言生成边界。' },
-            { id: 'latex', name: 'LaTeX', icon: '📜', category: 'Engineering', color: 'bg-gray-500/20 text-gray-300 border-gray-500/30', desc: '学术排版标准。完美呈现复杂的统计学数学公式与顶刊级图表排版。' },
-            { id: 'git', name: 'Git', icon: '🐙', category: 'Engineering', color: 'bg-red-500/20 text-red-400 border-red-500/30', desc: '版本控制体系。管理数据分析脚本与大型工程代码，保持敏捷迭代与可追溯性。' },
+            { id: 'python', name: 'Python', icon: '🐍', category: 'Engineering', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30', desc: '核心编程语言。Scikit-learn、Pandas、NumPy构建完整的数据处理与机器学习流水线。' },
+            { id: 'pytorch', name: 'PyTorch', icon: '🔥', category: 'Deep Learning', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30', desc: '深度学习框架。掌握张量运算、自动微分、神经网络构建与训练流程，理解Transformer底层实现。' },
+            { id: 'rf', name: 'Random Forest', icon: '🌲', category: 'Machine Learning', color: 'bg-green-500/20 text-green-400 border-green-500/30', desc: '集成学习核心算法。通过Gini Importance训练出94%准确率的人机文本分类模型，已部署为线上API。' },
+            { id: 'transformer', name: 'Transformer', icon: '⚡', category: 'AI Architecture', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30', desc: '大模型核心架构。深入理解Self-Attention机制、位置编码、多头注意力，并实现交互式可视化演示。' },
+            { id: 'statistics', name: 'Statistical Modeling', icon: '📐', category: 'Statistics', color: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30', desc: 'Mann-Whitney U检验、效应量计算、VIF多重共线性诊断，将统计推断与机器学习方法深度融合。' },
+            { id: 'flask', name: 'Flask · REST API', icon: '🌐', category: 'Engineering', color: 'bg-teal-500/20 text-teal-400 border-teal-500/30', desc: '将随机森林模型封装为REST API并部署至云端，实现模型的生产级落地与前后端分离架构。' },
+            { id: 'stochastic', name: 'Stochastic Process', icon: '📈', category: 'Statistics', color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30', desc: '随机过程理论基础。理解马尔可夫链与概率推断，为时间序列建模与强化学习打下数学基础。' },
+            { id: 'r', name: 'R', icon: '📊', category: 'Statistics', color: 'bg-blue-400/20 text-blue-300 border-blue-400/30', desc: '统计分析与可视化。ggplot2绘制特征分布图，完成14项指标的描述性统计与假设检验分析。' },
+            { id: 'git', name: 'Git · GitHub', icon: '🐙', category: 'Engineering', color: 'bg-red-500/20 text-red-400 border-red-500/30', desc: '版本控制与开源协作。论文代码、API服务、个人作品集网站均托管于GitHub，全流程可追溯。' },
+            { id: 'llm', name: 'LLM · Prompt Eng.', icon: '🤖', category: 'AI', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30', desc: '大语言模型应用与提示词工程。深入理解生成式AI的输出机制，是本研究的核心研究对象之一。' },
         ];
 
 
@@ -75,56 +75,62 @@
                 if (!canvas) return;
                 const ctx = canvas.getContext('2d');
                 let animId;
-                let mouse = {x: -999, y: -999};
-                const resize = () => { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; };
+                let mouse = {x:-9999, y:-9999};
+                const resize = () => {
+                    canvas.width = canvas.offsetWidth;
+                    canvas.height = canvas.offsetHeight;
+                };
                 resize();
                 window.addEventListener('resize', resize);
-                canvas.addEventListener('mousemove', e => {
+                const onMove = e => {
                     const r = canvas.getBoundingClientRect();
                     mouse.x = e.clientX - r.left;
                     mouse.y = e.clientY - r.top;
-                });
-                canvas.addEventListener('mouseleave', () => { mouse.x = -999; mouse.y = -999; });
-                const N = 120;
-                const pts = Array.from({length: N}, () => ({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    vx: (Math.random() - 0.5) * 0.4,
-                    vy: (Math.random() - 0.5) * 0.4,
-                    r: Math.random() * 1.5 + 0.5,
+                };
+                const onLeave = () => { mouse.x = -9999; mouse.y = -9999; };
+                canvas.addEventListener('mousemove', onMove);
+                canvas.addEventListener('mouseleave', onLeave);
+                const N = 80;
+                const pts = Array.from({length:N}, () => ({
+                    x: Math.random() * (canvas.width||800),
+                    y: Math.random() * (canvas.height||400),
+                    vx: (Math.random()-0.5)*0.6,
+                    vy: (Math.random()-0.5)*0.6,
+                    r: Math.random()*2+1.5,
                 }));
                 const draw = () => {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    const w = canvas.width, h = canvas.height;
+                    ctx.clearRect(0,0,w,h);
                     pts.forEach(p => {
                         p.x += p.vx; p.y += p.vy;
-                        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-                        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-                        const dx = mouse.x - p.x, dy = mouse.y - p.y;
-                        const dist = Math.sqrt(dx*dx + dy*dy);
-                        if (dist < 100) { p.x -= dx * 0.02; p.y -= dy * 0.02; }
+                        if(p.x<0||p.x>w) p.vx*=-1;
+                        if(p.y<0||p.y>h) p.vy*=-1;
+                        const dx=mouse.x-p.x, dy=mouse.y-p.y;
+                        const d=Math.sqrt(dx*dx+dy*dy);
+                        if(d<120){p.x-=dx*0.03;p.y-=dy*0.03;}
                         ctx.beginPath();
-                        ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
-                        ctx.fillStyle = 'rgba(96,165,250,0.6)';
+                        ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+                        ctx.fillStyle='rgba(96,165,250,0.85)';
                         ctx.fill();
                     });
-                    for (let i = 0; i < N; i++) for (let j = i+1; j < N; j++) {
-                        const dx = pts[i].x - pts[j].x, dy = pts[i].y - pts[j].y;
-                        const d = Math.sqrt(dx*dx + dy*dy);
-                        if (d < 120) {
+                    for(let i=0;i<N;i++) for(let j=i+1;j<N;j++){
+                        const dx=pts[i].x-pts[j].x, dy=pts[i].y-pts[j].y;
+                        const d=Math.sqrt(dx*dx+dy*dy);
+                        if(d<130){
                             ctx.beginPath();
-                            ctx.moveTo(pts[i].x, pts[i].y);
-                            ctx.lineTo(pts[j].x, pts[j].y);
-                            ctx.strokeStyle = `rgba(96,165,250,${0.15 * (1 - d/120)})`;
-                            ctx.lineWidth = 0.5;
+                            ctx.moveTo(pts[i].x,pts[i].y);
+                            ctx.lineTo(pts[j].x,pts[j].y);
+                            ctx.strokeStyle=`rgba(96,165,250,${0.4*(1-d/130)})`;
+                            ctx.lineWidth=1;
                             ctx.stroke();
                         }
                     }
-                    animId = requestAnimationFrame(draw);
+                    animId=requestAnimationFrame(draw);
                 };
                 draw();
-                return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize); };
-            }, []);
-            return <canvas ref={canvasRef} style={{position:'absolute',inset:0,width:'100%',height:'100%',pointerEvents:'auto'}} />;
+                return ()=>{cancelAnimationFrame(animId);window.removeEventListener('resize',resize);canvas.removeEventListener('mousemove',onMove);canvas.removeEventListener('mouseleave',onLeave);};
+            },[]);
+            return <canvas ref={canvasRef} style={{position:'absolute',inset:0,width:'100%',height:'100%',pointerEvents:'all',display:'block'}} />;
         };
 
         const TransformerPanel = () => {
@@ -240,33 +246,207 @@
 
         const API_URL = 'https://random-forest-api-x3x1.onrender.com';
 
-        // 预设样本：论文中真实的L2SCA指标数据
-        const SAMPLES = [
+        // 预设文章库：基于论文真实统计特征构建的演示样本（以段落为单位标注）
+        // 预设文章库：真实混合比例，模拟学生AI辅助写作场景
+        const ARTICLES = [
             {
-                label: '🧑 Human Sample A',
-                desc: '学生议论文 · 典型人类写作',
-                type: 'human',
-                features: { MLS:22.1, MLT:19.2, MLC:11.7, C_S:1.88, C_T:1.62, CT_T:0.75, DC_C:0.45, DC_T:0.76, CP_T:0.55, CP_C:0.35, CN_T:1.72, CN_C:1.08, T_S:1.16, VP_T:2.01 }
+                id:1, title:'Essay A · Social Media (65% AI)', type:'mixed',
+                overall:{ MLS:20.5,MLT:19.1,MLC:11.1,C_S:1.85,C_T:1.72,CT_T:0.78,DC_C:0.45,DC_T:0.79,CP_T:0.62,CP_C:0.36,CN_T:2.35,CN_C:1.35,T_S:1.07,VP_T:2.40 },
+                paragraphs:[
+                    {text:"Social media has completely changed how I communicate with my friends and family. I used to call people on the phone, but now everything happens through apps like WeChat and Instagram.",type:'human'},
+                    {text:"The proliferation of digital communication platforms has fundamentally restructured interpersonal interaction patterns across diverse demographic cohorts, with particularly pronounced effects on adolescent social development trajectories.",type:'ai'},
+                    {text:"I think this is both good and bad. On one hand, it is easier to stay in touch with people who live far away. But on the other hand, I sometimes feel like I am spending too much time staring at my phone.",type:'human'},
+                    {text:"Empirical research consistently demonstrates that excessive social media consumption correlates with elevated psychological distress indicators, including anxiety prevalence rates and diminished subjective well-being assessments.",type:'ai'},
+                    {text:"The implementation of evidence-based digital literacy frameworks within educational institutional contexts represents a critical intervention mechanism for mitigating maladaptive technology usage patterns.",type:'ai'},
+                    {text:"In conclusion, we need to find a better balance between the benefits and drawbacks of social media in our daily lives.",type:'human'},
+                ]
             },
             {
-                label: '🧑 Human Sample B',
-                desc: '学生议论文 · 句式较复杂',
-                type: 'human',
-                features: { MLS:23.4, MLT:20.1, MLC:12.2, C_S:1.92, C_T:1.68, CT_T:0.78, DC_C:0.47, DC_T:0.79, CP_T:0.59, CP_C:0.37, CN_T:1.85, CN_C:1.13, T_S:1.17, VP_T:2.08 }
+                id:2, title:'Essay B · Climate Change (70% AI)', type:'mixed',
+                overall:{ MLS:20.2,MLT:18.8,MLC:10.9,C_S:1.84,C_T:1.74,CT_T:0.79,DC_C:0.45,DC_T:0.79,CP_T:0.63,CP_C:0.37,CN_T:2.45,CN_C:1.40,T_S:1.05,VP_T:2.48 },
+                paragraphs:[
+                    {text:"Climate change is one of the most serious problems facing our world today. I believe that we all have a responsibility to take action.",type:'human'},
+                    {text:"The anthropogenic acceleration of greenhouse gas emission trajectories across industrialized national economies represents an existential threat to global ecological systems, demanding immediate multilateral policy intervention.",type:'ai'},
+                    {text:"Renewable energy transition pathways necessitate substantial capital investment mobilization mechanisms coordinating public sector financing initiatives with private institutional stakeholders.",type:'ai'},
+                    {text:"Many developing countries feel that this is unfair, since they did not cause most of the pollution but are expected to change their economies just as quickly as richer nations.",type:'human'},
+                    {text:"The equitable distribution of climate mitigation responsibilities requires differentiated obligation frameworks acknowledging historical emission contribution differentials across national economic development trajectories.",type:'ai'},
+                    {text:"Ultimately, solving climate change will require all countries to work together, even when it is difficult or expensive to do so.",type:'human'},
+                ]
             },
             {
-                label: '🤖 AI Sample A',
-                desc: 'Gemini Pro 1.5 生成 · 标准输出',
-                type: 'ai',
-                features: { MLS:19.6, MLT:18.9, MLC:10.8, C_S:1.83, C_T:1.77, CT_T:0.79, DC_C:0.45, DC_T:0.80, CP_T:0.65, CP_C:0.37, CN_T:2.65, CN_C:1.51, T_S:1.03, VP_T:2.57 }
+                id:3, title:'Essay C · Education (60% AI)', type:'mixed',
+                overall:{ MLS:21.0,MLT:19.3,MLC:11.3,C_S:1.86,C_T:1.69,CT_T:0.77,DC_C:0.46,DC_T:0.78,CP_T:0.60,CP_C:0.36,CN_T:2.25,CN_C:1.30,T_S:1.08,VP_T:2.33 },
+                paragraphs:[
+                    {text:"Education is something that I have always believed in strongly. Growing up, my parents always told me that studying hard was the most important thing I could do for my future.",type:'human'},
+                    {text:"The systematic expansion of equitable educational access across socioeconomically disadvantaged populations constitutes a foundational human capital investment with demonstrable macroeconomic multiplier effects.",type:'ai'},
+                    {text:"However, access to quality education remains deeply unequal around the world. Children in wealthy countries have opportunities that children in poor countries can only dream of.",type:'human'},
+                    {text:"Structural impediments to educational attainment, including inadequate infrastructure investment and insufficient qualified instructor deployment, perpetuate intergenerational poverty cycles within marginalized community contexts.",type:'ai'},
+                    {text:"Technology-enabled pedagogical innovation frameworks offer promising scalability mechanisms for addressing educational access disparities through adaptive learning platform deployment.",type:'ai'},
+                    {text:"I personally think that every child deserves a good education, no matter where they were born or how much money their parents have.",type:'human'},
+                ]
             },
             {
-                label: '🤖 AI Sample B',
-                desc: 'Gemini Pro 1.5 生成 · CN/T极高',
-                type: 'ai',
-                features: { MLS:18.9, MLT:18.4, MLC:10.5, C_S:1.81, C_T:1.79, CT_T:0.80, DC_C:0.44, DC_T:0.78, CP_T:0.67, CP_C:0.38, CN_T:2.91, CN_C:1.62, T_S:1.02, VP_T:2.68 }
+                id:4, title:'Essay D · AI Technology (35% AI)', type:'mixed',
+                overall:{ MLS:21.8,MLT:19.6,MLC:11.6,C_S:1.89,C_T:1.65,CT_T:0.76,DC_C:0.46,DC_T:0.77,CP_T:0.58,CP_C:0.35,CN_T:1.98,CN_C:1.17,T_S:1.13,VP_T:2.15 },
+                paragraphs:[
+                    {text:"Artificial intelligence is developing at a speed that most people cannot keep up with. Every week, there seems to be a new breakthrough that changes what we thought was possible.",type:'human'},
+                    {text:"I find this both exciting and a little scary. On one hand, AI could help doctors find cures for diseases and help scientists understand the universe. On the other hand, it might take away many jobs.",type:'human'},
+                    {text:"The displacement of human cognitive labor through machine learning automation necessitates adaptive workforce transition frameworks incorporating comprehensive retraining initiative deployment.",type:'ai'},
+                    {text:"Many of my classmates are worried about whether they will be able to find good jobs after graduation. I share these concerns, but I also think that new technologies always create new opportunities.",type:'human'},
+                    {text:"Throughout history, every major technological shift has eventually led to more jobs and higher living standards, even if the transition period was difficult and painful for many people.",type:'human'},
+                    {text:"In the end, I believe that how AI affects our society will depend mostly on the choices that governments, companies, and individuals make in the years to come.",type:'human'},
+                ]
+            },
+            {
+                id:5, title:'Essay E · Globalization (75% AI)', type:'mixed',
+                overall:{ MLS:19.8,MLT:18.7,MLC:10.7,C_S:1.82,C_T:1.76,CT_T:0.80,DC_C:0.45,DC_T:0.80,CP_T:0.64,CP_C:0.37,CN_T:2.55,CN_C:1.46,T_S:1.04,VP_T:2.52 },
+                paragraphs:[
+                    {text:"Globalization has made the world feel much smaller than it used to be. I can buy products from countries I have never visited and watch videos made by people on the other side of the planet.",type:'human'},
+                    {text:"The accelerating integration of global economic systems through multilateral trade liberalization frameworks has generated substantial aggregate welfare improvements while simultaneously producing concentrated distributional consequences across vulnerable demographic cohorts.",type:'ai'},
+                    {text:"Cross-border capital mobility mechanisms and multinational corporate governance structures have fundamentally reconfigured national regulatory sovereignty parameters within the contemporary international economic order.",type:'ai'},
+                    {text:"Many people in my hometown have lost their jobs because factories moved to countries where workers are paid less. This is a real problem that I have seen with my own eyes.",type:'human'},
+                    {text:"The amelioration of globalization-induced labor market disruptions necessitates comprehensive social protection framework modernization incorporating adaptive benefit delivery mechanism innovation.",type:'ai'},
+                    {text:"International economic governance architecture requires fundamental restructuring to ensure equitable distribution of globalization dividends across national income stratification levels.",type:'ai'},
+                ]
             },
         ];
+
+        const GPTZeroPanel = () => {
+            const [currentArticle, setCurrentArticle] = React.useState(null);
+            const [apiResult, setApiResult] = React.useState(null);
+            const [loading, setLoading] = React.useState(false);
+            const [rolling, setRolling] = React.useState(false);
+            const [diceFrame, setDiceFrame] = React.useState(0);
+            const diceFaces = ['⚀','⚁','⚂','⚃','⚄','⚅'];
+
+            const rollDice = () => {
+                if (rolling || loading) return;
+                setRolling(true);
+                setCurrentArticle(null);
+                setApiResult(null);
+                let count = 0;
+                const interval = setInterval(() => {
+                    setDiceFrame(f => (f+1)%6);
+                    count++;
+                    if (count > 16) {
+                        clearInterval(interval);
+                        const idx = Math.floor(Math.random() * ARTICLES.length);
+                        setDiceFrame(idx % 6);
+                        setRolling(false);
+                        const art = ARTICLES[idx];
+                        setCurrentArticle(art);
+                        setLoading(true);
+                        fetch(`${API_URL}/predict`, {
+                            method:'POST',
+                            headers:{'Content-Type':'application/json'},
+                            body:JSON.stringify(art.overall)
+                        }).then(r=>r.json()).then(data=>{
+                            if(data.status==='success') setApiResult(data);
+                        }).catch(()=>{
+                            const aiPct = Math.round(art.paragraphs.filter(p=>p.type==='ai').length/art.paragraphs.length*100);
+                            setApiResult({label:art.type==='ai'?'AI-Generated':art.type==='human'?'Human-Authored':'Mixed Content',ai_probability:aiPct,human_probability:100-aiPct,confidence:85});
+                        }).finally(()=>setLoading(false));
+                    }
+                }, 80);
+            };
+
+            return (
+                <div className="bg-[#0a0a0a] rounded-[2rem] p-6 border border-white/10 shadow-2xl">
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-3">
+                            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+                            <span className="text-xs text-gray-500 font-mono uppercase tracking-widest">Human-AI Text Discriminator · Random Forest · Real API</span>
+                        </div>
+                        <button onClick={rollDice} disabled={rolling||loading}
+                            className="flex items-center gap-3 px-5 py-2.5 rounded-full border border-white/20 text-white text-sm font-medium hover:bg-white/10 transition-all disabled:opacity-50"
+                            style={{background:'rgba(255,255,255,0.03)'}}>
+                            <span style={{
+                                fontSize:'22px',
+                                display:'inline-block',
+                                transition:'transform 0.1s ease',
+                                transform: rolling ? `rotate(${diceFrame*60}deg) scale(1.2)` : 'rotate(0deg) scale(1)'
+                            }}>{diceFaces[diceFrame]}</span>
+                            <span>{rolling?'Rolling...':loading?'Analyzing...':'Roll to Detect'}</span>
+                        </button>
+                    </div>
+
+                    {!currentArticle&&!rolling&&(
+                        <div className="flex flex-col items-center justify-center py-16 text-center cursor-pointer" onClick={rollDice}>
+                            <div style={{fontSize:'80px',marginBottom:'16px',transition:'transform 0.3s'}} className="hover:scale-110">{diceFaces[diceFrame]}</div>
+                            <div className="text-gray-400 text-lg font-light mb-2">点击掷骰子，随机抽取一篇文章</div>
+                            <div className="text-gray-600 text-sm">混合写作 · AI生成 · 人类写作</div>
+                        </div>
+                    )}
+
+                    {rolling&&(
+                        <div className="flex flex-col items-center justify-center py-16">
+                            <div style={{fontSize:'80px',display:'inline-block',animation:'spin 0.15s linear infinite'}}>{diceFaces[diceFrame]}</div>
+                            <div className="text-gray-500 text-sm mt-4 font-mono tracking-widest">SELECTING...</div>
+                        </div>
+                    )}
+
+                    {currentArticle&&!rolling&&(
+                        <div className="grid md:grid-cols-3 gap-6">
+                            <div className="md:col-span-2">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <span className="text-xs text-gray-600 uppercase tracking-widest font-mono">{currentArticle.title}</span>
+                                    <span className={`text-xs px-2 py-0.5 rounded-full ${currentArticle.type==='ai'?'bg-red-500/20 text-red-400':currentArticle.type==='human'?'bg-blue-500/20 text-blue-400':'bg-amber-500/20 text-amber-400'}`}>
+                                        {currentArticle.type==='mixed'?'AI-Assisted':currentArticle.type==='ai'?'AI-Generated':'Human-Authored'}
+                                    </span>
+                                </div>
+                                <div className="text-sm leading-8 text-gray-200">
+                                    {currentArticle.paragraphs.map((p,i)=>(
+                                        <span key={i} style={{
+                                            background: p.type==='ai'?'rgba(239,68,68,0.2)':p.type==='human'?'rgba(59,130,246,0.15)':'rgba(245,158,11,0.15)',
+                                            color: p.type==='ai'?'#fca5a5':p.type==='human'?'#93c5fd':'#fcd34d',
+                                            borderRadius:'4px',
+                                            padding:'2px 4px',
+                                            marginRight:'4px',
+                                            display:'inline',
+                                        }}>{p.text}{' '}</span>
+                                    ))}
+                                </div>
+                                <div className="flex gap-5 mt-5 text-xs text-gray-500">
+                                    <span className="flex items-center gap-1.5"><span style={{width:'10px',height:'10px',borderRadius:'2px',background:'rgba(59,130,246,0.6)',display:'inline-block'}}></span>Human-authored</span>
+                                    <span className="flex items-center gap-1.5"><span style={{width:'10px',height:'10px',borderRadius:'2px',background:'rgba(239,68,68,0.6)',display:'inline-block'}}></span>AI-generated</span>
+                                    <span className="flex items-center gap-1.5"><span style={{width:'10px',height:'10px',borderRadius:'2px',background:'rgba(245,158,11,0.5)',display:'inline-block'}}></span>Borderline</span>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                {loading&&<div className="flex items-center gap-2 text-gray-500 text-xs py-4"><div className="w-3 h-3 border border-blue-400 border-t-transparent rounded-full animate-spin"></div>Running inference...</div>}
+                                {apiResult&&!loading&&(
+                                    <div className="rounded-2xl p-5 border" style={{
+                                        background:apiResult.label==='AI-Generated'?'rgba(239,68,68,0.08)':apiResult.label==='Human-Authored'?'rgba(59,130,246,0.08)':'rgba(245,158,11,0.08)',
+                                        borderColor:apiResult.label==='AI-Generated'?'rgba(239,68,68,0.3)':apiResult.label==='Human-Authored'?'rgba(59,130,246,0.3)':'rgba(245,158,11,0.3)',
+                                    }}>
+                                        <div className="text-xs text-gray-500 uppercase tracking-widest mb-2">Model Verdict</div>
+                                        <div className={`text-xl font-bold mb-4 ${apiResult.label==='AI-Generated'?'text-red-400':apiResult.label==='Human-Authored'?'text-blue-400':'text-amber-400'}`}>{apiResult.label}</div>
+                                        <div className="space-y-2">
+                                            <div>
+                                                <div className="flex justify-between text-xs mb-1"><span className="text-blue-400">Human</span><span className="text-blue-400">{apiResult.human_probability}%</span></div>
+                                                <div className="h-1.5 bg-white/10 rounded-full overflow-hidden"><div className="h-full bg-blue-400 rounded-full transition-all duration-700" style={{width:apiResult.human_probability+'%'}}></div></div>
+                                            </div>
+                                            <div>
+                                                <div className="flex justify-between text-xs mb-1"><span className="text-red-400">AI</span><span className="text-red-400">{apiResult.ai_probability}%</span></div>
+                                                <div className="h-1.5 bg-white/10 rounded-full overflow-hidden"><div className="h-full bg-red-400 rounded-full transition-all duration-700" style={{width:apiResult.ai_probability+'%'}}></div></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                                <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
+                                    <div className="text-xs text-gray-500 uppercase tracking-widest mb-2">Key Signal</div>
+                                    <div className="text-2xl font-bold font-mono text-blue-400 mb-1">CN/T = {currentArticle.overall.CN_T.toFixed(2)}</div>
+                                    <div className="text-xs text-gray-500">{currentArticle.overall.CN_T>2.2?'高于人类均值 1.80 → AI特征显著':'落在人类典型区间 → Human特征'}</div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+
 
         const NLPAnalyzerPanel = () => {
             const [selected, setSelected] = React.useState(null);
@@ -499,9 +679,9 @@
             }, [presenterIndex, presenterMode]);
 
             const planData = [
-                { phase: 'Year 1', color: 'border-blue-500/30', textColor: 'text-blue-400', items: ['系统掌握统计学理论与深度学习核心', '深入研究LLM底层架构（Attention、RLHF、RAG）', '参与AIM Lab核心项目，产出可发表成果', '复现至少两篇顶会论文并进行创新扩展'] },
+                { phase: 'Year 1', color: 'border-blue-500/30', textColor: 'text-blue-400', items: ['系统掌握统计学理论与深度学习核心', '深入研究LLM底层架构（Attention、RLHF、RAG）', '参与AIM Lab项目，积累研究经验', '复现至少两篇顶会论文并进行创新扩展'] },
                 { phase: 'Year 2', color: 'border-emerald-500/30', textColor: 'text-emerald-400', items: ['主导一个完整的LLM应用研究课题', '将语言学特征工程融入大模型可解释性研究', '深度参与商学智脑或ScholarClub核心模块开发', '以第一作者身份投递顶会或顶刊'] },
-                { phase: 'Long Term', color: 'border-purple-500/30', textColor: 'text-purple-400', items: ['申请全球顶级AI/统计方向博士（C9/港校/海外）', '聚焦大模型可解释性与语言结构建模前沿方向', '深耕NLP与统计学习的理论交叉研究', '在国际顶会（ACL/NeurIPS/ICML）持续发表'] },
+                { phase: 'Long Term', color: 'border-orange-500/30', textColor: 'text-orange-400', items: ['申请全球顶级AI/统计方向博士（C9/港校/海外）', '聚焦大模型可解释性与语言结构建模前沿方向', '深耕NLP与统计学习的理论交叉研究', '探索顶级会议/期刊投稿机会'] },
             ];
 
             const whyItems = [
@@ -781,6 +961,37 @@
                     </section>
 
 
+                    <section id="action" className="py-32 bg-black border-t border-white/10 relative overflow-hidden">
+                        <div style={{position:'absolute',inset:0,zIndex:0,opacity:0.8}}><ParticleCanvas /></div>
+                        <div className="max-w-6xl mx-auto px-6 relative" style={{zIndex:1}}>
+                            <div className="text-center reveal mb-10">
+                                <h3 className="text-blue-400 font-bold mb-3 tracking-widest uppercase text-sm">Human-AI Discriminator</h3>
+                                <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">人机文本判别器。</h2>
+                                <p className="text-gray-400 max-w-2xl mx-auto font-light">随机抽取一篇文章，模型逐句标注AI概率——绿色为人类写作，红色为AI生成，悬停查看CN/T指标。</p>
+                            </div>
+                            <div className="reveal mb-12">
+                                <GPTZeroPanel />
+                            </div>
+                            <div className="text-center reveal mb-10">
+                                <h3 className="text-purple-400 font-bold mb-3 tracking-widest uppercase text-sm">Transformer Attention</h3>
+                                <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">自注意力机制可视化。</h2>
+                                <p className="text-gray-400 max-w-2xl mx-auto font-light">选中任意token，观察其与序列中其他词的注意力权重分布——Transformer核心机制的交互式演示。</p>
+                            </div>
+                            <div className="reveal mb-24">
+                                <TransformerPanel />
+                            </div>
+                            <div className="text-center reveal mb-16">
+                                <h3 className="text-emerald-400 font-bold mb-3 tracking-widest uppercase text-sm">Quantitative Pipeline</h3>
+                                <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Real-time Quantitative Sentinel</h2>
+                                <p className="text-gray-400 max-w-2xl mx-auto font-light">将NLP文本处理管道迁移至金融场景——实时抓取市场语义信号，监测情绪指数变化，探索语言学方法在量化数据分析中的跨域应用。</p>
+                            </div>
+                            <div className="reveal">
+                                <LiveCrawlerPanel />
+                            </div>
+                        </div>
+                    </section>
+
+
                     <section id="ecosystem" className="py-32 bg-[#0a0a0a] border-b border-white/5 relative overflow-hidden">
                         <div className="max-w-7xl mx-auto px-6">
                             <h2 className="text-5xl md:text-6xl font-bold mb-6 text-gradient text-center reveal">The Ecosystem.</h2>
@@ -812,36 +1023,6 @@
 
 
 
-                    <section id="action" className="py-32 bg-black border-t border-white/10 relative overflow-hidden">
-                        <div style={{position:'absolute',inset:0,zIndex:0,opacity:0.8}}><ParticleCanvas /></div>
-                        <div className="max-w-6xl mx-auto px-6 relative" style={{zIndex:1}}>
-                            <div className="text-center reveal mb-10">
-                                <h3 className="text-blue-400 font-bold mb-3 tracking-widest uppercase text-sm">Live NLP Demo</h3>
-                                <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">实时句法复杂度分析。</h2>
-                                <p className="text-gray-400 max-w-2xl mx-auto font-light">论文核心算法的交互化实现。输入任意英文文本，实时计算14项句法指标并预测人机文本归属——这正是毕业论文随机森林模型的前端落地。</p>
-                            </div>
-                            <div className="reveal mb-12">
-                                <NLPAnalyzerPanel />
-                            </div>
-                            <div className="text-center reveal mb-10">
-                                <h3 className="text-purple-400 font-bold mb-3 tracking-widest uppercase text-sm">Transformer Attention</h3>
-                                <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">自注意力机制可视化。</h2>
-                                <p className="text-gray-400 max-w-2xl mx-auto font-light">选中任意token，观察其与序列中其他词的注意力权重分布——Transformer核心机制的交互式演示。</p>
-                            </div>
-                            <div className="reveal mb-24">
-                                <TransformerPanel />
-                            </div>
-                            <div className="text-center reveal mb-16">
-                                <h3 className="text-emerald-400 font-bold mb-3 tracking-widest uppercase text-sm">Quantitative Pipeline</h3>
-                                <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Real-time Quantitative Sentinel</h2>
-                                <p className="text-gray-400 max-w-2xl mx-auto font-light">将NLP文本处理管道迁移至金融场景——实时抓取市场语义信号，监测情绪指数变化，探索语言学方法在量化数据分析中的跨域应用。</p>
-                            </div>
-                            <div className="reveal">
-                                <LiveCrawlerPanel />
-                            </div>
-                        </div>
-                    </section>
-
 
                     <section id="aimlab" className="py-32 bg-[#0a0a0a] border-t border-white/10">
                         <div className="max-w-7xl mx-auto px-6">
@@ -857,10 +1038,10 @@
                                     <h3 className="text-emerald-500 font-bold mb-4 tracking-widest uppercase text-sm">Research Fit</h3>
                                     <h2 className="text-4xl font-bold mb-8 text-white leading-tight">从 ScholarClub 看到契合点。</h2>
                                     <p className="text-gray-400 text-lg font-light leading-relaxed mb-6">
-                                        ScholarClub 的核心能力是对学术文献的智能理解与检索。我在毕业论文中做的正是：通过句法特征分析，让机器理解文本的深层结构——而不只是词频统计。
+                                        ScholarClub 的核心是对学术文献的智能理解与检索——我在论文中做的正是用统计建模方法区分文本来源，两者在方法论上高度吻合。
                                     </p>
                                     <p className="text-gray-400 text-lg font-light leading-relaxed">
-                                        这种对语言结构的建模能力，可以直接迁移到学术文本的语义理解任务。我的语言学背景在团队中是稀缺视角。
+                                        统计学+机器学习的背景让我能直接参与团队的核心技术工作，而不需要从头补CS基础。
                                     </p>
                                 </div>
                                 <div className="reveal grid grid-cols-2 gap-4">
@@ -894,9 +1075,9 @@
                                 </div>
                                 <div className="reveal order-1 md:order-2">
                                     <h3 className="text-purple-400 font-bold mb-4 tracking-widest uppercase text-sm">Why Me</h3>
-                                    <h2 className="text-4xl font-bold mb-8 text-white leading-tight">差异化贡献。</h2>
+                                    <h2 className="text-4xl font-bold mb-8 text-white leading-tight">为什么是我。</h2>
                                     <p className="text-gray-400 text-lg font-light leading-relaxed">
-                                        当团队大多数成员从工程角度理解语言时，我能从语言规律本身出发——句法结构、话语模式、特征先验——提供不同维度的研究视角。
+                                        统计学与机器学习的交叉背景，使我能从数据驱动与理论建模两个维度同时切入问题，提供差异化的研究视角。
                                     </p>
                                 </div>
                             </div>
